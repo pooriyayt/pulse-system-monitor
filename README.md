@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💓 Pulse — System Monitor
+#  Pulse — System Monitor
 
 **A beautiful, modern task manager & system monitor for Windows 11 — inspired by Mission Center, built with WinUI 3 and .NET 8.**
 
@@ -97,7 +97,7 @@ This will:
 
 <div dir="rtl" align="center">
 
-# 💓 پالس — مانیتور سیستم
+# پالس — مانیتور سیستم
 
 **یک تسک‌منیجر و مانیتور سیستم مدرن و زیبا برای ویندوز ۱۱ — الهام‌گرفته از Mission Center و ساخته‌شده با WinUI 3 و .NET 8**
 
