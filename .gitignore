@@ -6,3 +6,4 @@ Installer/
 OpenSource/
 *.user
 *.pfx
+.gitignore
