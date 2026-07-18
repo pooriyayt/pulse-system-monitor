@@ -1,0 +1,24 @@
+<UserControl
+    x:Class="TaskManagerPro.Controls.LiveGraph"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid x:Name="RootGrid" SizeChanged="RootGrid_SizeChanged" MinHeight="80">
+        <!-- برش لبه‌ها: نقاطی که در حال ورود/خروج از گراف هستند بیرون قاب دیده نشوند -->
+        <Grid.Clip>
+            <RectangleGeometry x:Name="ClipGeometry" />
+        </Grid.Clip>
+
+        <!-- قاب دور گراف -->
+        <Border BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Background="{ThemeResource SubtleFillColorTransparentBrush}" />
+
+        <!-- ناحیه‌ی پرشده‌ی زیر خط -->
+        <Polygon x:Name="FillArea" Opacity="0.2" />
+
+        <!-- خط اصلی گراف -->
+        <Polyline x:Name="Line" StrokeThickness="2" StrokeLineJoin="Round" />
+    </Grid>
+</UserControl>

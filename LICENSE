@@ -1,0 +1,101 @@
+Pulse Source-Available License (PSAL) v1.0
+Copyright (c) 2026 Pouriya Parniyan — pouriyaparniyan.ir
+All rights reserved.
+
+============================================================
+ENGLISH
+============================================================
+
+1. DEFINITIONS
+   "Software" means the Pulse — System Monitor application, its source code,
+   assets, build scripts and documentation contained in this repository.
+   "Author" means Pouriya Parniyan.
+
+2. WHAT YOU MAY DO (no permission needed)
+   a. View, read and study the source code.
+   b. Audit the code for security, privacy or malware concerns and publish
+      your findings.
+   c. Build the Software from source and run it on your own machines for
+      personal, non-commercial use.
+   d. Fork the repository solely for the purpose of proposing changes back
+      to the original repository (pull requests).
+   e. Share an unmodified link to the official repository or the official
+      download page.
+
+3. WHAT YOU MAY NOT DO (without prior written permission from the Author)
+   a. Redistribute the Software or any modified version of it, in source or
+      binary form, under your own name or any other name.
+   b. Publish the Software (or builds of it) on any app store, download
+      site, package manager or marketplace.
+   c. Sell, rent, sublicense or otherwise commercially exploit the Software
+      or derivatives of it.
+   d. Remove or alter the Author's name, copyright notices, links, or
+      in-app attribution.
+   e. Use the "Pulse" name, logo or branding for a derivative product.
+
+4. PERMISSION REQUESTS
+   For any use outside Section 2, contact the Author first and obtain
+   written permission: https://pouriyaparniyan.ir
+
+5. CONTRIBUTIONS
+   By submitting a contribution (e.g. a pull request) you agree that your
+   contribution is licensed to the Author under this same license and may
+   be included in official releases.
+
+6. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+
+7. TERMINATION
+   Any violation of Section 3 automatically terminates your rights under
+   this license.
+
+============================================================
+فارسی
+============================================================
+
+لایسنس «سورس-در-دسترس پالس» نسخه ۱.۰
+حق نشر (c) ۲۰۲۶ پوریا پرنیان — pouriyaparniyan.ir
+تمامی حقوق محفوظ است.
+
+۱. تعاریف
+   «نرم‌افزار» یعنی برنامه‌ی Pulse — System Monitor، سورس‌کد، فایل‌های گرافیکی،
+   اسکریپت‌های بیلد و مستندات موجود در این مخزن.
+   «مؤلف» یعنی پوریا پرنیان.
+
+۲. کارهایی که مجاز هستید (بدون نیاز به اجازه)
+   الف) دیدن، خواندن و مطالعه‌ی سورس‌کد.
+   ب) بررسی امنیتی کد (اطمینان از سالم بودن و نبود بدافزار) و انتشار نتایج بررسی.
+   ج) بیلد گرفتن از سورس و اجرای آن روی سیستم‌های خودتان برای استفاده‌ی
+      شخصی و غیرتجاری.
+   د) فورک کردن مخزن صرفاً برای پیشنهاد تغییر به مخزن اصلی (پول ریکوئست).
+   هـ) به اشتراک گذاشتن لینک مخزن رسمی یا صفحه‌ی دانلود رسمی.
+
+۳. کارهایی که مجاز نیستید (مگر با اجازه‌ی کتبی قبلی از مؤلف)
+   الف) بازنشر نرم‌افزار یا هر نسخه‌ی تغییریافته از آن — چه سورس چه فایل
+      اجرایی — به اسم خودتان یا هر اسم دیگری.
+   ب) انتشار نرم‌افزار (یا بیلدهای آن) در اپ‌استور، سایت دانلود، پکیج‌منیجر
+      یا هر مارکت دیگری.
+   ج) فروش، اجاره، صدور مجوز فرعی یا هر بهره‌برداری تجاری از نرم‌افزار یا
+      مشتقات آن.
+   د) حذف یا تغییر نام مؤلف، اعلان‌های حق نشر، لینک‌ها یا اعتبار داخل برنامه.
+   هـ) استفاده از نام، لوگو یا برند «Pulse» برای محصول مشتق‌شده.
+
+۴. درخواست اجازه
+   برای هر استفاده‌ای خارج از بند ۲، ابتدا با مؤلف تماس بگیرید و اجازه‌ی
+   کتبی بگیرید: https://pouriyaparniyan.ir
+
+۵. مشارکت‌ها
+   با ارسال مشارکت (مثلاً پول ریکوئست) می‌پذیرید که مشارکت شما تحت همین
+   لایسنس در اختیار مؤلف قرار می‌گیرد و ممکن است در نسخه‌های رسمی استفاده شود.
+
+۶. عدم ضمانت
+   نرم‌افزار «همان‌گونه که هست» ارائه می‌شود، بدون هیچ ضمانتی — صریح یا
+   ضمنی. مؤلف در قبال هیچ ادعا، خسارت یا مسئولیتی ناشی از استفاده از
+   نرم‌افزار پاسخگو نیست.
+
+۷. فسخ
+   هرگونه نقض بند ۳، حقوق شما تحت این لایسنس را به‌طور خودکار لغو می‌کند.

@@ -1,0 +1,235 @@
+﻿# ============================================================
+#  Pulse — Installer Builder
+# ============================================================
+$ErrorActionPreference = "Stop"
+$root = $PSScriptRoot
+$proj = Join-Path $root "TaskManagerPro\TaskManagerPro.csproj"
+$outDir = Join-Path $root "Installer"
+New-Item -ItemType Directory -Force $outDir | Out-Null
+
+# ---- نسخه از منیفست ----
+[xml]$manifest = Get-Content (Join-Path $root "TaskManagerPro\Package.appxmanifest")
+$version = $manifest.Package.Identity.Version   # e.g. 1.5.0.0
+$shortVer = ($version -split '\.')[0..1] -join '.'
+Write-Host "Building Pulse $shortVer ..." -ForegroundColor Cyan
+
+# ---- گواهی امضا ----
+$cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=TaskManagerPro" } | Select-Object -First 1
+if (-not $cert) {
+    Write-Host "Creating signing certificate..." -ForegroundColor Yellow
+    $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=TaskManagerPro" -KeyUsage DigitalSignature `
+        -FriendlyName "Task Manager Pro Signing" -CertStoreLocation "Cert:\CurrentUser\My" `
+        -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+}
+$cerPath = Join-Path $env:TEMP "TaskManagerPro.cer"
+Export-Certificate -Cert $cert -FilePath $cerPath | Out-Null
+
+# ---- بیلد پکیج MSIX امضاشده ----
+$pkgDir = Join-Path $env:TEMP "TMP-msix-build"
+Remove-Item $pkgDir -Recurse -Force -ErrorAction SilentlyContinue
+dotnet build $proj -c Release -p:Platform=x64 `
+    -p:GenerateAppxPackageOnBuild=true `
+    -p:AppxPackageDir="$pkgDir\" `
+    -p:UapAppxPackageBuildMode=SideloadOnly `
+    -p:AppxBundle=Never `
+    -p:AppxPackageSigningEnabled=true `
+    -p:PackageCertificateThumbprint=$($cert.Thumbprint) `
+    -v:m -nologo
+if ($LASTEXITCODE -ne 0) { Write-Host "BUILD FAILED" -ForegroundColor Red; exit 1 }
+
+$msix = Get-ChildItem $pkgDir -Recurse -Filter *.msix | Select-Object -First 1
+if (-not $msix) { Write-Host "MSIX not found!" -ForegroundColor Red; exit 1 }
+
+# ---- فایل‌های داخل اینستالر ----
+$stage = Join-Path $env:TEMP "TMP-installer-stage"
+Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force $stage | Out-Null
+Copy-Item $msix.FullName (Join-Path $stage "app.msix")
+Copy-Item $cerPath (Join-Path $stage "app.cer")
+Copy-Item (Join-Path $root "TaskManagerPro\Assets\app.ico") (Join-Path $stage "app.ico")
+
+# ---- سورس اینستالر (exe واقعی — msix و گواهی داخلش امبد می‌شوند) ----
+# با csc خود ویندوز (NET Framework 4.8.) کامپایل می‌شود؛ روی همه‌ی ویندوزهای 10/11 اجرا می‌شود.
+$installerCs = Join-Path $env:TEMP "TMProInstaller.cs"
+@'
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
+
+[assembly: AssemblyTitle("Pulse Setup")]
+[assembly: AssemblyDescription("Pulse - System Monitor Installer")]
+[assembly: AssemblyProduct("Pulse")]
+[assembly: AssemblyCompany("Pouriya Parniyan")]
+[assembly: AssemblyCopyright("(c) Pouriya Parniyan - pouriyaparniyan.ir")]
+[assembly: AssemblyVersion("__VER__")]
+[assembly: AssemblyFileVersion("__VER__")]
+[assembly: AssemblyInformationalVersion("__SHORTVER__")]
+
+static class Setup
+{
+    static bool IsAdmin()
+    {
+        try
+        {
+            using (WindowsIdentity id = WindowsIdentity.GetCurrent())
+                return new WindowsPrincipal(id).IsInRole(WindowsBuiltInRole.Administrator);
+        }
+        catch { return false; }
+    }
+
+    static string Extract(string resName, string dir)
+    {
+        string path = Path.Combine(dir, resName);
+        using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(resName))
+        using (FileStream f = File.Create(path))
+            s.CopyTo(f);
+        return path;
+    }
+
+    static int Main()
+    {
+        Console.Title = "Pulse Setup";
+
+        if (!IsAdmin())
+        {
+            // دوباره خودمان را با دسترسی Administrator اجرا کن
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo(Assembly.GetExecutingAssembly().Location);
+                psi.UseShellExecute = true;
+                psi.Verb = "runas";
+                Process.Start(psi);
+            }
+            catch
+            {
+                Console.WriteLine("Administrator access is required to install.");
+                Console.ReadKey();
+            }
+            return 0;
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("  ==============================================");
+        Console.WriteLine("        Pulse  -  System Monitor  -  Installer");
+        Console.WriteLine("  ==============================================");
+        Console.WriteLine();
+
+        try
+        {
+            string dir = Path.Combine(Path.GetTempPath(), "TMProSetup");
+            Directory.CreateDirectory(dir);
+
+            Console.WriteLine("  Extracting files...");
+            string msix = Extract("app.msix", dir);
+            string cer = Extract("app.cer", dir);
+
+            Console.WriteLine("  Trusting application certificate...");
+            X509Certificate2 cert = new X509Certificate2(cer);
+            X509Store store = new X509Store(StoreName.TrustedPeople, StoreLocation.LocalMachine);
+            store.Open(OpenFlags.ReadWrite);
+            store.Add(cert);
+            store.Close();
+
+            Console.WriteLine("  Installing Pulse (this may take a minute)...");
+            string cmd =
+                "try { Add-AppxPackage -Path '" + msix + "' -ForceApplicationShutdown -ErrorAction Stop } " +
+                "catch { Get-AppxPackage TaskManagerPro | Remove-AppxPackage; Add-AppxPackage -Path '" + msix + "' -ErrorAction Stop }";
+
+            ProcessStartInfo ps = new ProcessStartInfo("powershell.exe",
+                "-NoProfile -ExecutionPolicy Bypass -Command \"" + cmd + "\"");
+            ps.UseShellExecute = false;
+            ps.CreateNoWindow = true;
+            ps.RedirectStandardError = true;
+            Process p = Process.Start(ps);
+            string err = p.StandardError.ReadToEnd();
+            p.WaitForExit();
+
+            if (p.ExitCode != 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine("  Installation FAILED:");
+                Console.WriteLine("  " + err.Trim());
+                Console.WriteLine();
+                Console.WriteLine("  Windows 10 version 1809 or newer is required.");
+                Console.WriteLine("  Press any key to close...");
+                Console.ReadKey();
+                return 1;
+            }
+
+            // شورتکات دسکتاپ (روی دسکتاپ عمومی — برای همه‌ی کاربران)
+            try
+            {
+                Console.WriteLine("  Creating desktop shortcut...");
+                // آیکون شورتکات: فایل ico در ProgramData کپی می‌شود (exe داخل WindowsApps
+                // آیکون Win32 ندارد و شل به آن دسترسی ندارد)
+                string iconDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Pulse");
+                Directory.CreateDirectory(iconDir);
+                string iconPath = Path.Combine(iconDir, "Pulse.ico");
+                using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("app.ico"))
+                using (FileStream f = File.Create(iconPath))
+                    s.CopyTo(f);
+
+                string shortcutCmd =
+                    "$pkg = Get-AppxPackage TaskManagerPro; " +
+                    "$lnk = (New-Object -ComObject WScript.Shell).CreateShortcut([IO.Path]::Combine($env:PUBLIC, 'Desktop', 'Pulse.lnk')); " +
+                    "$lnk.TargetPath = 'explorer.exe'; " +
+                    "$lnk.Arguments = ('shell:AppsFolder\\' + $pkg.PackageFamilyName + '!App'); " +
+                    "$lnk.IconLocation = '" + iconPath + ",0'; " +
+                    "$lnk.Description = 'Pulse - System Monitor'; " +
+                    "$lnk.Save()";
+                ProcessStartInfo sc = new ProcessStartInfo("powershell.exe",
+                    "-NoProfile -ExecutionPolicy Bypass -Command \"" + shortcutCmd + "\"");
+                sc.UseShellExecute = false;
+                sc.CreateNoWindow = true;
+                Process.Start(sc).WaitForExit();
+            }
+            catch { }
+
+            Console.WriteLine();
+            Console.WriteLine("  ==============================================");
+            Console.WriteLine("   Pulse installed successfully!");
+            Console.WriteLine("   A shortcut was added to your desktop.");
+            Console.WriteLine("  ==============================================");
+            Console.WriteLine();
+            Console.WriteLine("  Press any key to close...");
+            Console.ReadKey();
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine();
+            Console.WriteLine("  Installation FAILED: " + ex.Message);
+            Console.WriteLine("  Press any key to close...");
+            Console.ReadKey();
+            return 1;
+        }
+    }
+}
+'@ -replace '__VER__', $version -replace '__SHORTVER__', $shortVer | Set-Content $installerCs -Encoding UTF8
+
+# ---- کامپایل exe تکی ----
+$setupExe = Join-Path $outDir "Pulse-$shortVer-Setup.exe"
+Remove-Item $setupExe -Force -ErrorAction SilentlyContinue
+
+$icon = Join-Path $root "TaskManagerPro\Assets\app.ico"
+$csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+& $csc /nologo /target:exe /platform:anycpu /out:"$setupExe" `
+    /win32icon:"$icon" `
+    /res:"$stage\app.msix",app.msix `
+    /res:"$stage\app.cer",app.cer `
+    /res:"$stage\app.ico",app.ico `
+    "$installerCs"
+if ($LASTEXITCODE -ne 0) { Write-Host "csc compile failed" -ForegroundColor Red; exit 1 }
+
+if (Test-Path $setupExe) {
+    $mb = [Math]::Round((Get-Item $setupExe).Length / 1MB, 1)
+    Write-Host ""
+    Write-Host "DONE!  $setupExe  ($mb MB)" -ForegroundColor Green
+    Write-Host "این یک فایل را به اشتراک بگذار — کاربر فقط اجرایش می‌کند." -ForegroundColor Green
+} else {
+    Write-Host "IExpress failed to produce the exe." -ForegroundColor Red
+    exit 1
+}

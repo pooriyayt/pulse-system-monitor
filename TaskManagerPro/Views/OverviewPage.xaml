@@ -1,0 +1,139 @@
+<Page
+    x:Class="TaskManagerPro.Views.OverviewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:TaskManagerPro.Controls">
+
+    <ScrollViewer Padding="24,16,24,24">
+        <StackPanel Spacing="16" MaxWidth="1000" HorizontalAlignment="Stretch">
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <FontIcon Glyph="&#xE9D9;" FontSize="24"
+                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <TextBlock Text="Overview" Style="{StaticResource TitleTextBlockStyle}" />
+            </StackPanel>
+
+            <!-- ================= CPU ================= -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="8">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE950;" FontSize="16"
+                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock Text="CPU" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        </StackPanel>
+                        <TextBlock x:Name="CpuModelText"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Bottom"
+                                   Opacity="0.7" />
+                    </Grid>
+                    <controls:LiveGraph x:Name="CpuGraph" Height="120" />
+                    <TextBlock x:Name="CpuText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <VariableSizedWrapGrid x:Name="CoresPanel"
+                                           Orientation="Horizontal"
+                                           ItemWidth="150"
+                                           ItemHeight="46" />
+                </StackPanel>
+            </Border>
+
+            <!-- ================= Memory ================= -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xEEA0;" FontSize="16"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="Memory" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    </StackPanel>
+                    <controls:LiveGraph x:Name="MemGraph" Height="120" />
+                    <TextBlock x:Name="MemText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock x:Name="PageFileText" Opacity="0.7" />
+                </StackPanel>
+            </Border>
+
+            <!-- ================= GPU ================= -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="8">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE7F4;" FontSize="16"
+                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock Text="GPU" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        </StackPanel>
+                        <TextBlock x:Name="GpuModelText"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Bottom"
+                                   Opacity="0.7"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="550" />
+                    </Grid>
+                    <controls:LiveGraph x:Name="GpuGraph" Height="120" />
+                    <TextBlock x:Name="GpuText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                </StackPanel>
+            </Border>
+
+            <!-- ================= Disk ================= -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xEDA2;" FontSize="16"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="Disk" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    </StackPanel>
+                    <controls:LiveGraph x:Name="DiskGraph" Height="120" />
+                    <TextBlock x:Name="DiskText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                </StackPanel>
+            </Border>
+
+            <!-- ================= Network ================= -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE839;" FontSize="16"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="Network" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    </StackPanel>
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE896;" FontSize="12" Opacity="0.7" />
+                                <TextBlock Text="Download" Opacity="0.7" />
+                            </StackPanel>
+                            <controls:LiveGraph x:Name="NetDownGraph" Height="90" AutoScale="True" />
+                            <TextBlock x:Name="NetDownText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE898;" FontSize="12" Opacity="0.7" />
+                                <TextBlock Text="Upload" Opacity="0.7" />
+                            </StackPanel>
+                            <controls:LiveGraph x:Name="NetUpGraph" Height="90" AutoScale="True" />
+                            <TextBlock x:Name="NetUpText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ================= Hardware ================= -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE770;" FontSize="16"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="Hardware" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    </StackPanel>
+                    <TextBlock x:Name="HardwareText"
+                               TextWrapping="Wrap"
+                               FontFamily="Consolas"
+                               Opacity="0.85" />
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -1,0 +1,83 @@
+﻿<Window
+    x:Class="TaskManagerPro.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid>
+        <!-- هات‌کی‌های داخل برنامه: Ctrl+1 تا Ctrl+5 برای جابه‌جایی بین تب‌ها -->
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="Number1" Modifiers="Control" Invoked="Tab1_Invoked" />
+            <KeyboardAccelerator Key="Number2" Modifiers="Control" Invoked="Tab2_Invoked" />
+            <KeyboardAccelerator Key="Number3" Modifiers="Control" Invoked="Tab3_Invoked" />
+            <KeyboardAccelerator Key="Number4" Modifiers="Control" Invoked="Tab4_Invoked" />
+            <KeyboardAccelerator Key="Number5" Modifiers="Control" Invoked="Tab5_Invoked" />
+        </Grid.KeyboardAccelerators>
+
+        <Grid.RowDefinitions>
+            <!-- ردیف اول: نوار عنوان سفارشی -->
+            <RowDefinition Height="48" />
+            <!-- ردیف دوم: بقیه‌ی پنجره -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- نوار عنوان: آیکون و اسم برنامه -->
+        <StackPanel x:Name="AppTitleBar"
+                    Grid.Row="0"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    Padding="16,0">
+            <FontIcon Glyph="&#xE9D9;" FontSize="16"
+                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+            <TextBlock Text="Pulse"
+                       Margin="12,0,0,0"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource CaptionTextBlockStyle}" />
+        </StackPanel>
+
+        <!-- Sidebar ناوبری (مثل Task Manager ویندوز 11) -->
+        <NavigationView x:Name="NavView"
+                        Grid.Row="1"
+                        PaneDisplayMode="Auto"
+                        IsBackButtonVisible="Collapsed"
+                        IsSettingsVisible="True"
+                        OpenPaneLength="220"
+                        SelectionChanged="NavView_SelectionChanged"
+                        Loaded="NavView_Loaded">
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="Overview" Tag="overview">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D9;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Performance" Tag="performance">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xEC4A;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Processes" Tag="processes">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9F5;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Startup Apps" Tag="startup">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE945;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Services" Tag="services">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE912;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <!-- محل نمایش صفحات با انیمیشن جابه‌جایی -->
+            <Frame x:Name="ContentFrame" />
+        </NavigationView>
+    </Grid>
+</Window>
