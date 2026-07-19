@@ -181,7 +181,7 @@ namespace TaskManagerPro.Views
 
         private void UpdateRefreshLabel()
         {
-            RefreshLabel.Text = $"Graphs update every {RefreshSlider.Value:F0} ms";
+            RefreshLabel.Text = string.Format(L10n.T("Graphs update every {0} ms"), (int)RefreshSlider.Value);
         }
 
         // ---- پنجره ----
@@ -230,7 +230,7 @@ namespace TaskManagerPro.Views
 
         private void UpdateTraySizeLabel()
         {
-            TraySizeLabel.Text = $"Tray text size: {TraySizeSlider.Value:F0}%";
+            TraySizeLabel.Text = string.Format(L10n.T("Tray text size: {0}%"), (int)TraySizeSlider.Value);
         }
 
         private void TrayColor_Click(object sender, RoutedEventArgs e)
@@ -302,9 +302,9 @@ namespace TaskManagerPro.Views
 
         private void UpdateAlarmLabels()
         {
-            AlarmCpuLabel.Text = $"CPU alarm at {AlarmCpuSlider.Value:F0}%";
-            AlarmRamLabel.Text = $"RAM alarm at {AlarmRamSlider.Value:F0}%";
-            AlarmTempLabel.Text = $"Temperature alarm at {AlarmTempSlider.Value:F0} °C";
+            AlarmCpuLabel.Text = string.Format(L10n.T("CPU alarm at {0}%"), (int)AlarmCpuSlider.Value);
+            AlarmRamLabel.Text = string.Format(L10n.T("RAM alarm at {0}%"), (int)AlarmRamSlider.Value);
+            AlarmTempLabel.Text = string.Format(L10n.T("Temperature alarm at {0} °C"), (int)AlarmTempSlider.Value);
         }
 
         // ---- ویجت و صدا ----
@@ -337,13 +337,13 @@ namespace TaskManagerPro.Views
                 var content = new StackPanel { Spacing = 8 };
 
                 // --- رنگ ---
-                content.Children.Add(new TextBlock { Text = "Color", Opacity = 0.7, FontSize = 12 });
+                content.Children.Add(new TextBlock { Text = L10n.T("Color"), Opacity = 0.7, FontSize = 12 });
                 var colorRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
                 string current = AppSettings.GetTrayIconColor(m);
 
                 var globalBtn = new Button
                 {
-                    Content = "Global",
+                    Content = L10n.T("Global"),
                     Padding = new Thickness(10, 4, 10, 4),
                 };
                 int metric = m;
@@ -392,12 +392,12 @@ namespace TaskManagerPro.Views
                 content.Children.Add(colorRow);
 
                 // --- استایل ---
-                content.Children.Add(new TextBlock { Text = "Style", Opacity = 0.7, FontSize = 12 });
+                content.Children.Add(new TextBlock { Text = L10n.T("Style"), Opacity = 0.7, FontSize = 12 });
                 var styleCombo = new ComboBox { Width = 240 };
-                styleCombo.Items.Add(new ComboBoxItem { Content = "Use global style" });
-                styleCombo.Items.Add(new ComboBoxItem { Content = "Colored badge" });
-                styleCombo.Items.Add(new ComboBoxItem { Content = "Text only" });
-                styleCombo.Items.Add(new ComboBoxItem { Content = "Mini live graph" });
+                styleCombo.Items.Add(new ComboBoxItem { Content = L10n.T("Use global style") });
+                styleCombo.Items.Add(new ComboBoxItem { Content = L10n.T("Colored badge") });
+                styleCombo.Items.Add(new ComboBoxItem { Content = L10n.T("Text only") });
+                styleCombo.Items.Add(new ComboBoxItem { Content = L10n.T("Mini live graph") });
                 styleCombo.SelectedIndex = AppSettings.GetTrayIconStyle(m) + 1;
                 styleCombo.SelectionChanged += (s, e) =>
                 {
@@ -408,7 +408,7 @@ namespace TaskManagerPro.Views
 
                 // --- اندازه ---
                 int scale = AppSettings.GetTrayIconScale(m);
-                var sizeCheck = new CheckBox { Content = "Custom text size", IsChecked = scale > 0, MinWidth = 0 };
+                var sizeCheck = new CheckBox { Content = L10n.T("Custom text size"), IsChecked = scale > 0, MinWidth = 0 };
                 var sizeSlider = new Slider
                 {
                     Minimum = 75,
@@ -431,7 +431,7 @@ namespace TaskManagerPro.Views
 
                 TrayPerIconPanel.Children.Add(new Expander
                 {
-                    Header = $"{MetricNames[m]} icon",
+                    Header = string.Format(L10n.T("{0} icon"), MetricNames[m]),
                     Content = content,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     HorizontalContentAlignment = HorizontalAlignment.Stretch,
@@ -448,6 +448,43 @@ namespace TaskManagerPro.Views
             SoundHeader.Text = L10n.T("Sound");
             LangHeader.Text = L10n.T("Language");
             SoundToggle.Header = L10n.T("Play a subtle sound when ending a task");
+            UpdateHeader.Text = L10n.T("Updates");
+            CheckUpdateLabel.Text = L10n.T("Check for updates");
+            AlarmToggle.Header = L10n.T("Windows notification when CPU / RAM / temperature exceeds a limit");
+            WidgetToggle.Header = L10n.T("Small always-on-top window with live CPU / RAM / GPU graphs");
+            TopToggle.Header = L10n.T("Always on top (keep this window above all others)");
+            TrayToggle.Header = L10n.T("Live usage icon in the system tray — closing or minimizing hides the app to the tray");
+            PerIconHeader.Text = L10n.T("Per-icon customization — override color, style and size for each tray icon");
+            HotkeyToggle.Header = L10n.T("Global hotkey Ctrl + Alt + T to show / hide the window");
+            PageTitle.Text = L10n.T("Settings");
+            AppearanceHeader.Text = L10n.T("Appearance");
+            ThemeSubtitle.Text = L10n.T("Choose the app theme");
+            AccentHeader.Text = L10n.T("Accent color");
+            AccentSubtitle.Text = L10n.T("Used for the whole app (buttons, highlights) and all live graphs");
+            FillToggle.Header = L10n.T("Fill area under the graph line");
+            RefreshHeader.Text = L10n.T("Refresh rate");
+            WindowHeader.Text = L10n.T("Window");
+            TrayHeader.Text = L10n.T("System tray");
+            TrayItemsLabel.Text = L10n.T("Tray items — pick one or more, each gets its own live icon");
+            TrayAdminNote.Text = L10n.T("Download / Upload speeds need the app to run as administrator");
+            IconStyleLabel.Text = L10n.T("Icon style");
+            TrayColorLabel.Text = L10n.T("Tray icon color");
+            KeyboardHeader.Text = L10n.T("Keyboard shortcuts");
+            Shortcut1.Text = L10n.T("Ctrl + 1 ... 5 — switch between tabs");
+            Shortcut2.Text = L10n.T("Ctrl + F — focus search (Processes / Services)");
+            Shortcut3.Text = L10n.T("F5 — refresh the current list");
+            Shortcut4.Text = L10n.T("Delete — end the selected process");
+            Shortcut5.Text = L10n.T("Ctrl + Alt + T — show / hide the window from anywhere in Windows");
+            AboutHeader.Text = L10n.T("About");
+            AboutDesc.Text = L10n.T("A task manager for Windows 11, built with WinUI 3 and .NET 8.");
+
+            // TrayStyleCombo items
+            if (TrayStyleCombo.Items.Count >= 3)
+            {
+                ((ComboBoxItem)TrayStyleCombo.Items[0]).Content = L10n.T("Colored badge");
+                ((ComboBoxItem)TrayStyleCombo.Items[1]).Content = L10n.T("Text only (transparent, colored text)");
+                ((ComboBoxItem)TrayStyleCombo.Items[2]).Content = L10n.T("Mini live graph");
+            }
         }
 
         /// <summary>دور دکمه‌ی رنگ انتخاب‌شده یک حاشیه می‌کشد تا معلوم باشد کدام انتخاب شده</summary>

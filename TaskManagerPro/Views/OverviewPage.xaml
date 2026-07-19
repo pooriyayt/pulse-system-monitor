@@ -10,7 +10,7 @@
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <FontIcon Glyph="&#xE9D9;" FontSize="24"
                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                <TextBlock Text="Overview" Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock x:Name="OverviewTitle" Text="Overview" Style="{StaticResource TitleTextBlockStyle}" />
             </StackPanel>
 
             <!-- ================= CPU ================= -->
@@ -20,7 +20,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE950;" FontSize="16"
                                       Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock Text="CPU" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <TextBlock x:Name="CpuHeader" Text="CPU" Style="{StaticResource SubtitleTextBlockStyle}" />
                         </StackPanel>
                         <TextBlock x:Name="CpuModelText"
                                    HorizontalAlignment="Right"
@@ -42,7 +42,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xEEA0;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="Memory" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="MemHeader" Text="Memory" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
                     <controls:LiveGraph x:Name="MemGraph" Height="120" />
                     <TextBlock x:Name="MemText" Style="{StaticResource BodyStrongTextBlockStyle}" />
@@ -57,7 +57,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE7F4;" FontSize="16"
                                       Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock Text="GPU" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <TextBlock x:Name="GpuHeader" Text="GPU" Style="{StaticResource SubtitleTextBlockStyle}" />
                         </StackPanel>
                         <TextBlock x:Name="GpuModelText"
                                    HorizontalAlignment="Right"
@@ -77,7 +77,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xEDA2;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="Disk" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="DiskHeader" Text="Disk" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
                     <controls:LiveGraph x:Name="DiskGraph" Height="120" />
                     <TextBlock x:Name="DiskText" Style="{StaticResource BodyStrongTextBlockStyle}" />
@@ -90,7 +90,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE839;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="Network" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="NetHeader" Text="Network" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
@@ -101,7 +101,7 @@
                         <StackPanel Grid.Column="0" Spacing="6">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE896;" FontSize="12" Opacity="0.7" />
-                                <TextBlock Text="Download" Opacity="0.7" />
+                                <TextBlock x:Name="NetDownLabel" Text="Download" Opacity="0.7" />
                             </StackPanel>
                             <controls:LiveGraph x:Name="NetDownGraph" Height="90" AutoScale="True" />
                             <TextBlock x:Name="NetDownText" Style="{StaticResource BodyStrongTextBlockStyle}" />
@@ -110,7 +110,7 @@
                         <StackPanel Grid.Column="1" Spacing="6">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE898;" FontSize="12" Opacity="0.7" />
-                                <TextBlock Text="Upload" Opacity="0.7" />
+                                <TextBlock x:Name="NetUpLabel" Text="Upload" Opacity="0.7" />
                             </StackPanel>
                             <controls:LiveGraph x:Name="NetUpGraph" Height="90" AutoScale="True" />
                             <TextBlock x:Name="NetUpText" Style="{StaticResource BodyStrongTextBlockStyle}" />
@@ -125,7 +125,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE770;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="Hardware" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="HardwareHeader" Text="Hardware" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
                     <TextBlock x:Name="HardwareText"
                                TextWrapping="Wrap"

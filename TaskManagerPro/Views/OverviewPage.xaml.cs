@@ -25,8 +25,22 @@ namespace TaskManagerPro.Views
             Unloaded += OnUnloaded;
         }
 
+        private void ApplyL10n()
+        {
+            OverviewTitle.Text = L10n.T("Overview");
+            CpuHeader.Text = "CPU";
+            MemHeader.Text = L10n.T("Memory");
+            GpuHeader.Text = "GPU";
+            DiskHeader.Text = L10n.T("Disk");
+            NetHeader.Text = L10n.T("Network");
+            NetDownLabel.Text = L10n.T("Download");
+            NetUpLabel.Text = L10n.T("Upload");
+            HardwareHeader.Text = L10n.T("Hardware");
+        }
+
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            ApplyL10n();
             // مشخصات سخت‌افزار را در پس‌زمینه بخوان تا UI قفل نشود
             CpuModelText.Text = await Task.Run(HardwareInfo.GetCpuName);
             GpuModelText.Text = await Task.Run(HardwareInfo.GetGpuName);
@@ -99,7 +113,7 @@ namespace TaskManagerPro.Views
             // Memory + Page File
             MemGraph.AddValue(s.MemPercent);
             MemText.Text = $"{s.MemUsedGB:F1} / {s.MemTotalGB:F1} GB  ({s.MemPercent:F0}%)";
-            PageFileText.Text = $"Page File: {s.PageFilePercent:F0}% used";
+            PageFileText.Text = string.Format(L10n.T("Page File: {0}% used"), (int)s.PageFilePercent);
 
             // GPU ها — همه‌ی کارت‌ها به تفکیک (شامل GPU داخلی Intel)
             if (s.Gpus.Count > 0)
@@ -116,7 +130,7 @@ namespace TaskManagerPro.Views
             }
             else
             {
-                GpuText.Text = "GPU usage is not available on this system";
+                GpuText.Text = L10n.T("GPU usage is not available on this system");
             }
 
             // Disk

@@ -156,14 +156,14 @@ namespace TaskManagerPro.Views
                     DetailSubtitle.Text = _cpuName;
                     MainGraph.AutoScale = false;
                     MainGraph.MaxValue = 100;
-                    MainGraphLabel.Text = "% Utilization";
+                    MainGraphLabel.Text = L10n.T("% Utilization");
                     CoresCard.Visibility = Visibility.Visible;
                     break;
 
                 case "memory":
                     MainGraph.AutoScale = false;
                     MainGraph.MaxValue = 100;
-                    MainGraphLabel.Text = "Memory usage (%)";
+                    MainGraphLabel.Text = L10n.T("Memory usage (%)");
                     break;
 
                 case "gpu":
@@ -174,7 +174,7 @@ namespace TaskManagerPro.Views
                     DetailSubtitle.Text = gi < _gpuNames.Count ? _gpuNames[gi] : "";
                     MainGraph.AutoScale = false;
                     MainGraph.MaxValue = 100;
-                    MainGraphLabel.Text = "% Utilization";
+                    MainGraphLabel.Text = L10n.T("% Utilization");
 
                     // گراف‌های موتورهای GPU مثل Task Manager ویندوز
                     EnginesCard.Visibility = Visibility.Visible;
@@ -189,18 +189,18 @@ namespace TaskManagerPro.Views
                 case "disk":
                     MainGraph.AutoScale = false;
                     MainGraph.MaxValue = 100;
-                    MainGraphLabel.Text = "Active time (%)";
+                    MainGraphLabel.Text = L10n.T("Active time (%)");
                     SecondCard.Visibility = Visibility.Visible;
                     SecondGraph.AutoScale = true;
-                    SecondGraphLabel.Text = "Transfer rate — Read + Write (MB/s)";
+                    SecondGraphLabel.Text = L10n.T("Transfer rate — Read + Write (MB/s)");
                     break;
 
                 case "network":
                     MainGraph.AutoScale = true;
-                    MainGraphLabel.Text = "Download";
+                    MainGraphLabel.Text = L10n.T("Download");
                     SecondCard.Visibility = Visibility.Visible;
                     SecondGraph.AutoScale = true;
-                    SecondGraphLabel.Text = "Upload";
+                    SecondGraphLabel.Text = L10n.T("Upload");
                     break;
             }
         }
@@ -383,7 +383,7 @@ namespace TaskManagerPro.Views
                 if (used)
                 {
                     SetTextAnimated(_statValues[i], stats[i].Value);
-                    _statLabels[i].Text = stats[i].Label;
+                    _statLabels[i].Text = L10n.T(stats[i].Label);
                 }
             }
         }

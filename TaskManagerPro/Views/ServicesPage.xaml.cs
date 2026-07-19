@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using TaskManagerPro.Helpers;
 using TaskManagerPro.Models;
 
 namespace TaskManagerPro.Views
@@ -21,7 +22,19 @@ namespace TaskManagerPro.Views
         public ServicesPage()
         {
             this.InitializeComponent();
-            Loaded += async (s, e) => await LoadServicesAsync();
+            Loaded += async (s, e) =>
+            {
+                ApplyL10n();
+                await LoadServicesAsync();
+            };
+        }
+
+        private void ApplyL10n()
+        {
+            ServicesTitle.Text = L10n.T("Services");
+            SearchBox.PlaceholderText = L10n.T("Search services...  (Ctrl+F)");
+            RefreshLabel.Text = L10n.T("Refresh");
+            ErrorBar.Title = L10n.T("Note");
         }
 
         private async Task LoadServicesAsync()

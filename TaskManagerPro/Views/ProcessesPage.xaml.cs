@@ -811,6 +811,44 @@ namespace TaskManagerPro.Views
             MenuEco.Text = L10n.T("Efficiency mode");
             MenuCopy.Text = L10n.T("Copy details");
             MenuOpenLocation.Text = L10n.T("Open file location");
+
+            // Column headers
+            ColName.Text = L10n.T("Name");
+            ColPid.Text = "PID";
+            ColCpu.Text = "CPU";
+            ColMemory.Text = L10n.T("Memory");
+            ColDisk.Text = L10n.T("Disk");
+            ColNetwork.Text = L10n.T("Network");
+            ColGpu.Text = "GPU";
+
+            // Toolbar buttons
+            RefreshBtnLabel.Text = L10n.T("Refresh");
+            ExportLabel.Text = L10n.T("Export CSV");
+            RunTaskLabel.Text = L10n.T("Run new task");
+            RunFlyoutTitle.Text = L10n.T("Open");
+            RunInput.PlaceholderText = L10n.T("e.g. notepad, cmd, mspaint");
+            RunBtn.Content = L10n.T("Run");
+            EndTaskLabel.Text = L10n.T("End task");
+            LoadingText.Text = L10n.T("Loading processes...");
+
+            // Admin bar
+            AdminBar.Title = L10n.T("Run as administrator");
+
+            // Sort ComboBox items
+            ((ComboBoxItem)SortCombo.Items[0]).Content = L10n.T("Sort: CPU");
+            ((ComboBoxItem)SortCombo.Items[1]).Content = L10n.T("Sort: Memory");
+            ((ComboBoxItem)SortCombo.Items[2]).Content = L10n.T("Sort: Disk");
+            ((ComboBoxItem)SortCombo.Items[3]).Content = L10n.T("Sort: Network");
+            ((ComboBoxItem)SortCombo.Items[4]).Content = L10n.T("Sort: GPU");
+            ((ComboBoxItem)SortCombo.Items[5]).Content = L10n.T("Sort: Name");
+            ((ComboBoxItem)SortCombo.Items[6]).Content = L10n.T("Sort: PID");
+
+            // Filter ComboBox items
+            ((ComboBoxItem)FilterCombo.Items[0]).Content = L10n.T("Filter: All");
+            ((ComboBoxItem)FilterCombo.Items[1]).Content = L10n.T("Filter: Apps only");
+            ((ComboBoxItem)FilterCombo.Items[2]).Content = L10n.T("Filter: CPU > 1%");
+            ((ComboBoxItem)FilterCombo.Items[3]).Content = L10n.T("Filter: Memory > 100 MB");
+            ((ComboBoxItem)FilterCombo.Items[4]).Content = L10n.T("Filter: Active network");
         }
 
         // ---------- نوار ابزار ----------

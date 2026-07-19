@@ -13,5 +13,9 @@ namespace TaskManagerPro.Models
 
         /// <summary>وضعیت فعلی: Running / Stopped / ...</summary>
         public string Status { get; set; } = "";
+
+        public string TxtStart => TaskManagerPro.Helpers.L10n.T("Start");
+        public string TxtStop => TaskManagerPro.Helpers.L10n.T("Stop");
+        public string TxtRestart => TaskManagerPro.Helpers.L10n.T("Restart");
     }
 }

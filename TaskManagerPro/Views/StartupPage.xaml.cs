@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Win32;
+using TaskManagerPro.Helpers;
 using TaskManagerPro.Models;
 
 namespace TaskManagerPro.Views
@@ -23,7 +24,14 @@ namespace TaskManagerPro.Views
         public StartupPage()
         {
             this.InitializeComponent();
-            Loaded += (s, e) => LoadItems();
+            Loaded += (s, e) => { ApplyL10n(); LoadItems(); };
+        }
+
+        private void ApplyL10n()
+        {
+            StartupTitle.Text = L10n.T("Startup Apps");
+            RefreshBtnLabel.Text = L10n.T("Refresh");
+            StartupSubtitle.Text = L10n.T("Programs that start automatically with Windows");
         }
 
         private void Refresh_Click(object sender, RoutedEventArgs e) => LoadItems();

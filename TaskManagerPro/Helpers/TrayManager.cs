@@ -410,9 +410,9 @@ namespace TaskManagerPro.Helpers
         private void ShowMenu()
         {
             IntPtr menu = CreatePopupMenu();
-            AppendMenuW(menu, MF_STRING, (UIntPtr)MENU_SHOW, "Show Pulse");
+            AppendMenuW(menu, MF_STRING, (UIntPtr)MENU_SHOW, L10n.T("Show Pulse"));
             AppendMenuW(menu, MF_SEPARATOR, UIntPtr.Zero, null);
-            AppendMenuW(menu, MF_STRING, (UIntPtr)MENU_EXIT, "Exit");
+            AppendMenuW(menu, MF_STRING, (UIntPtr)MENU_EXIT, L10n.T("Exit"));
 
             GetCursorPos(out POINT pt);
             SetForegroundWindow(_hwnd);

@@ -2,7 +2,7 @@
 
 #  Pulse — System Monitor
 
-**A beautiful, modern task manager & system monitor for Windows 11 — inspired by Mission Center, built with WinUI 3 and .NET 8.**
+**A beautiful, modern task manager & system monitor for Windows 11, built with WinUI 3 and .NET 8.**
 
 [⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-1.5-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
@@ -107,7 +107,7 @@ This will:
 
 # پالس — مانیتور سیستم
 
-**یک تسک‌منیجر و مانیتور سیستم مدرن و زیبا برای ویندوز ۱۱ — الهام‌گرفته از Mission Center و ساخته‌شده با WinUI 3 و .NET 8**
+**یک تسک‌منیجر و مانیتور سیستم مدرن و زیبا برای ویندوز ۱۱، ساخته‌شده با WinUI 3 و .NET 8**
 
 [⬇️ دانلود Pulse](https://dl1.wl-std.com/Pulse-1.5-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 

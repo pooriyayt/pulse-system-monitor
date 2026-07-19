@@ -9,7 +9,7 @@
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <FontIcon Glyph="&#xE713;" FontSize="24"
                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock x:Name="PageTitle" Text="Settings" Style="{StaticResource TitleTextBlockStyle}" />
             </StackPanel>
 
             <!-- تم -->
@@ -18,9 +18,9 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE771;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="Appearance" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="AppearanceHeader" Text="Appearance" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
-                    <TextBlock Text="Choose the app theme" Opacity="0.7" />
+                    <TextBlock x:Name="ThemeSubtitle" Text="Choose the app theme" Opacity="0.7" />
                     <RadioButtons x:Name="ThemeRadios" SelectionChanged="Theme_Changed">
                         <RadioButton Content="Dark (Mica)" />
                         <RadioButton Content="Light (Mica)" />
@@ -54,9 +54,9 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE790;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="Accent color" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="AccentHeader" Text="Accent color" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
-                    <TextBlock Text="Used for the whole app (buttons, highlights) and all live graphs" Opacity="0.7" />
+                    <TextBlock x:Name="AccentSubtitle" Text="Used for the whole app (buttons, highlights) and all live graphs" Opacity="0.7" />
                     <StackPanel x:Name="AccentPanel" Orientation="Horizontal" Spacing="10">
                         <Button Tag="#61AFFE" Background="#61AFFE" Width="36" Height="36" CornerRadius="18" Click="Accent_Click" />
                         <Button Tag="#6CCB5F" Background="#6CCB5F" Width="36" Height="36" CornerRadius="18" Click="Accent_Click" />
@@ -98,7 +98,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE72C;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="Refresh rate" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="RefreshHeader" Text="Refresh rate" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
                     <TextBlock x:Name="RefreshLabel" Opacity="0.7" />
                     <Slider x:Name="RefreshSlider"
@@ -117,7 +117,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE8A7;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="Window" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="WindowHeader" Text="Window" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
                     <ToggleSwitch x:Name="TopToggle"
                                   Header="Always on top (keep this window above all others)"
@@ -131,12 +131,12 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE823;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="System tray" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="TrayHeader" Text="System tray" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
                     <ToggleSwitch x:Name="TrayToggle"
                                   Header="Live usage icon in the system tray — closing or minimizing hides the app to the tray"
                                   Toggled="Tray_Toggled" />
-                    <TextBlock Text="Tray items — pick one or more, each gets its own live icon" Opacity="0.7" />
+                    <TextBlock x:Name="TrayItemsLabel" Text="Tray items — pick one or more, each gets its own live icon" Opacity="0.7" />
                     <StackPanel Orientation="Horizontal" Spacing="16">
                         <CheckBox x:Name="TrayCpuCheck" Content="CPU" MinWidth="0" Checked="TrayItems_Changed" Unchecked="TrayItems_Changed" />
                         <CheckBox x:Name="TrayRamCheck" Content="RAM" MinWidth="0" Checked="TrayItems_Changed" Unchecked="TrayItems_Changed" />
@@ -145,8 +145,8 @@
                         <CheckBox x:Name="TrayDownCheck" Content="Download" MinWidth="0" Checked="TrayItems_Changed" Unchecked="TrayItems_Changed" />
                         <CheckBox x:Name="TrayUpCheck" Content="Upload" MinWidth="0" Checked="TrayItems_Changed" Unchecked="TrayItems_Changed" />
                     </StackPanel>
-                    <TextBlock Text="Download / Upload speeds need the app to run as administrator" FontSize="12" Opacity="0.5" />
-                    <TextBlock Text="Icon style" Opacity="0.7" />
+                    <TextBlock x:Name="TrayAdminNote" Text="Download / Upload speeds need the app to run as administrator" FontSize="12" Opacity="0.5" />
+                    <TextBlock x:Name="IconStyleLabel" Text="Icon style" Opacity="0.7" />
                     <ComboBox x:Name="TrayStyleCombo" Width="240" SelectionChanged="TrayStyle_Changed">
                         <ComboBoxItem Content="Colored badge" />
                         <ComboBoxItem Content="Text only (transparent, colored text)" />
@@ -154,7 +154,7 @@
                     </ComboBox>
                     <TextBlock x:Name="TraySizeLabel" Opacity="0.7" />
                     <Slider x:Name="TraySizeSlider" Minimum="75" Maximum="150" StepFrequency="5" Width="320" HorizontalAlignment="Left" ValueChanged="TraySize_Changed" />
-                    <TextBlock Text="Tray icon color" Opacity="0.7" />
+                    <TextBlock x:Name="TrayColorLabel" Text="Tray icon color" Opacity="0.7" />
                     <StackPanel x:Name="TrayColorPanel" Orientation="Horizontal" Spacing="10">
                         <Button Tag="#61AFFE" Background="#61AFFE" Width="28" Height="28" CornerRadius="14" Click="TrayColor_Click" />
                         <Button Tag="#6CCB5F" Background="#6CCB5F" Width="28" Height="28" CornerRadius="14" Click="TrayColor_Click" />
@@ -251,13 +251,13 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE765;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="Keyboard shortcuts" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="KeyboardHeader" Text="Keyboard shortcuts" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
-                    <TextBlock Text="Ctrl + 1 ... 5 — switch between tabs" Opacity="0.8" />
-                    <TextBlock Text="Ctrl + F — focus search (Processes / Services)" Opacity="0.8" />
-                    <TextBlock Text="F5 — refresh the current list" Opacity="0.8" />
-                    <TextBlock Text="Delete — end the selected process" Opacity="0.8" />
-                    <TextBlock Text="Ctrl + Alt + T — show / hide the window from anywhere in Windows" Opacity="0.8" />
+                    <TextBlock x:Name="Shortcut1" Text="Ctrl + 1 ... 5 — switch between tabs" Opacity="0.8" />
+                    <TextBlock x:Name="Shortcut2" Text="Ctrl + F — focus search (Processes / Services)" Opacity="0.8" />
+                    <TextBlock x:Name="Shortcut3" Text="F5 — refresh the current list" Opacity="0.8" />
+                    <TextBlock x:Name="Shortcut4" Text="Delete — end the selected process" Opacity="0.8" />
+                    <TextBlock x:Name="Shortcut5" Text="Ctrl + Alt + T — show / hide the window from anywhere in Windows" Opacity="0.8" />
                 </StackPanel>
             </Border>
 
@@ -289,10 +289,10 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE946;" FontSize="16"
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock Text="About" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="AboutHeader" Text="About" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
                     <TextBlock Text="Pulse 1.5 — System Monitor" />
-                    <TextBlock Text="A Mission Center inspired task manager for Windows 11, built with WinUI 3 and .NET 8."
+                    <TextBlock x:Name="AboutDesc" Text="A task manager for Windows 11, built with WinUI 3 and .NET 8."
                                Opacity="0.7"
                                TextWrapping="Wrap" />
                     <TextBlock Text="Made by Pouriya Parniyan"
