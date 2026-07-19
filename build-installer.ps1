@@ -70,6 +70,8 @@ using System.Security.Principal;
 
 static class Setup
 {
+    static bool silent = false;
+
     static bool IsAdmin()
     {
         try
@@ -89,51 +91,86 @@ static class Setup
         return path;
     }
 
-    static int Main()
+    static void Log(string msg)
     {
-        Console.Title = "Pulse Setup";
+        Console.WriteLine(msg);
+    }
+
+    static void Pause(string msg)
+    {
+        if (silent) return;
+        Console.WriteLine(msg);
+        Console.ReadKey();
+    }
+
+    static int Main(string[] args)
+    {
+        foreach (string a in args)
+        {
+            string al = a.ToLowerInvariant();
+            if (al == "/s" || al == "--silent" || al == "/silent" || al == "-s")
+                silent = true;
+        }
+
+        if (!silent)
+        {
+            Console.Title = "Pulse Setup";
+        }
 
         if (!IsAdmin())
         {
-            // دوباره خودمان را با دسترسی Administrator اجرا کن
             try
             {
-                ProcessStartInfo psi = new ProcessStartInfo(Assembly.GetExecutingAssembly().Location);
+                string location = Assembly.GetExecutingAssembly().Location;
+                ProcessStartInfo psi = new ProcessStartInfo(location,
+                    silent ? "/S" : "");
                 psi.UseShellExecute = true;
                 psi.Verb = "runas";
-                Process.Start(psi);
+                Process elevated = Process.Start(psi);
+                if (silent && elevated != null)
+                {
+                    elevated.WaitForExit();
+                    return elevated.ExitCode;
+                }
             }
             catch
             {
-                Console.WriteLine("Administrator access is required to install.");
-                Console.ReadKey();
+                if (!silent)
+                {
+                    Console.WriteLine("Administrator access is required to install.");
+                    Console.ReadKey();
+                }
+                return 1;
             }
             return 0;
         }
 
-        Console.WriteLine();
-        Console.WriteLine("  ==============================================");
-        Console.WriteLine("        Pulse  -  System Monitor  -  Installer");
-        Console.WriteLine("  ==============================================");
-        Console.WriteLine();
+        if (!silent)
+        {
+            Console.WriteLine();
+            Console.WriteLine("  ==============================================");
+            Console.WriteLine("        Pulse  -  System Monitor  -  Installer");
+            Console.WriteLine("  ==============================================");
+            Console.WriteLine();
+        }
 
         try
         {
             string dir = Path.Combine(Path.GetTempPath(), "TMProSetup");
             Directory.CreateDirectory(dir);
 
-            Console.WriteLine("  Extracting files...");
+            Log("  Extracting files...");
             string msix = Extract("app.msix", dir);
             string cer = Extract("app.cer", dir);
 
-            Console.WriteLine("  Trusting application certificate...");
+            Log("  Trusting application certificate...");
             X509Certificate2 cert = new X509Certificate2(cer);
             X509Store store = new X509Store(StoreName.TrustedPeople, StoreLocation.LocalMachine);
             store.Open(OpenFlags.ReadWrite);
             store.Add(cert);
             store.Close();
 
-            Console.WriteLine("  Installing Pulse (this may take a minute)...");
+            Log("  Installing Pulse (this may take a minute)...");
             string cmd =
                 "try { Add-AppxPackage -Path '" + msix + "' -ForceApplicationShutdown -ErrorAction Stop } " +
                 "catch { Get-AppxPackage TaskManagerPro | Remove-AppxPackage; Add-AppxPackage -Path '" + msix + "' -ErrorAction Stop }";
@@ -149,22 +186,18 @@ static class Setup
 
             if (p.ExitCode != 0)
             {
-                Console.WriteLine();
-                Console.WriteLine("  Installation FAILED:");
-                Console.WriteLine("  " + err.Trim());
-                Console.WriteLine();
-                Console.WriteLine("  Windows 10 version 1809 or newer is required.");
-                Console.WriteLine("  Press any key to close...");
-                Console.ReadKey();
+                Log("");
+                Log("  Installation FAILED:");
+                Log("  " + err.Trim());
+                Log("");
+                Log("  Windows 10 version 1809 or newer is required.");
+                Pause("  Press any key to close...");
                 return 1;
             }
 
-            // شورتکات دسکتاپ (روی دسکتاپ عمومی — برای همه‌ی کاربران)
             try
             {
-                Console.WriteLine("  Creating desktop shortcut...");
-                // آیکون شورتکات: فایل ico در ProgramData کپی می‌شود (exe داخل WindowsApps
-                // آیکون Win32 ندارد و شل به آن دسترسی ندارد)
+                Log("  Creating desktop shortcut...");
                 string iconDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Pulse");
                 Directory.CreateDirectory(iconDir);
                 string iconPath = Path.Combine(iconDir, "Pulse.ico");
@@ -188,22 +221,23 @@ static class Setup
             }
             catch { }
 
-            Console.WriteLine();
-            Console.WriteLine("  ==============================================");
-            Console.WriteLine("   Pulse installed successfully!");
-            Console.WriteLine("   A shortcut was added to your desktop.");
-            Console.WriteLine("  ==============================================");
-            Console.WriteLine();
-            Console.WriteLine("  Press any key to close...");
-            Console.ReadKey();
+            if (!silent)
+            {
+                Console.WriteLine();
+                Console.WriteLine("  ==============================================");
+                Console.WriteLine("   Pulse installed successfully!");
+                Console.WriteLine("   A shortcut was added to your desktop.");
+                Console.WriteLine("  ==============================================");
+                Console.WriteLine();
+            }
+            Pause("  Press any key to close...");
             return 0;
         }
         catch (Exception ex)
         {
-            Console.WriteLine();
-            Console.WriteLine("  Installation FAILED: " + ex.Message);
-            Console.WriteLine("  Press any key to close...");
-            Console.ReadKey();
+            Log("");
+            Log("  Installation FAILED: " + ex.Message);
+            Pause("  Press any key to close...");
             return 1;
         }
     }
