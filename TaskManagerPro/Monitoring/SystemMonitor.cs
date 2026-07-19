@@ -424,7 +424,8 @@ namespace TaskManagerPro.Monitoring
                 if (maxAll <= 0 && _reads % 5 == 1)
                     _lastWmiTemp = ReadWmiTemperature();
 
-                s.CpuTempC = maxAll > 0 ? maxAll : _lastWmiTemp;
+                double lhmTemp = (maxAll <= 0 && _lastWmiTemp <= 0) ? SensorMonitor.ReadCpuTemp() : -1;
+                s.CpuTempC = maxAll > 0 ? maxAll : (_lastWmiTemp > 0 ? _lastWmiTemp : lhmTemp);
                 s.GpuTempC = maxGpu;
             }
             catch { }

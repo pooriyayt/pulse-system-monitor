@@ -63,6 +63,29 @@ namespace TaskManagerPro
         {
             NavView.SelectedItem = NavView.MenuItems[0];
             ContentFrame.Navigate(typeof(OverviewPage));
+
+            NavView.PaneOpening += (_, _) => AnimatePane(NavView.CompactPaneLength, 220, EasingMode.EaseOut);
+            NavView.PaneClosing += (_, _) => AnimatePane(220, NavView.CompactPaneLength, EasingMode.EaseIn);
+        }
+
+        private Storyboard? _paneAnim;
+
+        private void AnimatePane(double from, double to, EasingMode ease)
+        {
+            _paneAnim?.Stop();
+            var anim = new DoubleAnimation
+            {
+                From = from,
+                To = to,
+                Duration = new Duration(TimeSpan.FromMilliseconds(280)),
+                EasingFunction = new CubicEase { EasingMode = ease },
+            };
+            Storyboard.SetTarget(anim, NavView);
+            Storyboard.SetTargetProperty(anim, "OpenPaneLength");
+            _paneAnim = new Storyboard();
+            _paneAnim.Children.Add(anim);
+            _paneAnim.Completed += (_, _) => NavView.OpenPaneLength = to;
+            _paneAnim.Begin();
         }
 
         // وقتی کاربر روی یکی از آیتم‌های Sidebar کلیک کرد:

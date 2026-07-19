@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using TaskManagerPro.Helpers;
+using TaskManagerPro.Monitoring;
 
 namespace TaskManagerPro
 {
@@ -42,6 +43,9 @@ namespace TaskManagerPro
 
             // نمونه‌برداری سراسری تاریخچه (گراف ۱۰ دقیقه/۱ ساعت + آلارم مصرف + mini-گراف Tray)
             Monitoring.HistoryStore.Start(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
+
+            // شروع زودهنگام سنسورهای سخت‌افزار تا دمای CPU از همان ابتدا نمایش داده شود
+            _ = System.Threading.Tasks.Task.Run(SensorMonitor.Start);
 
             // ویجت شناور دسکتاپ
             ApplyWidget();

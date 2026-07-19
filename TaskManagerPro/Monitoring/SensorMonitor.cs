@@ -134,6 +134,36 @@ namespace TaskManagerPro.Monitoring
         }
 
         /// <summary>
+        /// فقط دمای CPU — سبک‌تر از Read کامل، fallback برای SystemMonitor.
+        /// -1 یعنی در دسترس نیست.
+        /// </summary>
+        public static double ReadCpuTemp()
+        {
+            double max = -1;
+            lock (Lock)
+            {
+                if (_pc == null) return -1;
+                try
+                {
+                    foreach (var hw in _pc.Hardware)
+                    {
+                        if (hw.HardwareType != HardwareType.Cpu) continue;
+                        try
+                        {
+                            hw.Update();
+                            foreach (var s in hw.Sensors)
+                                if (s.SensorType == SensorType.Temperature && s.Value is float v && !float.IsNaN(v) && v > max)
+                                    max = v;
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+            }
+            return max;
+        }
+
+        /// <summary>
         /// فقط دمای GPU — سبک‌تر از Read کامل، برای تب GPU در Performance.
         /// -1 یعنی در دسترس نیست.
         /// </summary>

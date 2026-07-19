@@ -1,7 +1,8 @@
 ﻿<Page
     x:Class="TaskManagerPro.Views.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    NavigationCacheMode="Required">
 
     <ScrollViewer Padding="24,16,24,24">
         <StackPanel Spacing="16" MaxWidth="700" HorizontalAlignment="Left">
@@ -294,7 +295,7 @@
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                         <TextBlock x:Name="AboutHeader" Text="About" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
-                    <TextBlock Text="Pulse 1.7 — System Monitor" />
+                    <TextBlock Text="Pulse 1.8 - System Monitor" />
                     <TextBlock x:Name="AboutDesc" Text="A task manager for Windows 11, built with WinUI 3 and .NET 8."
                                Opacity="0.7"
                                TextWrapping="Wrap" />

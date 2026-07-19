@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:TaskManagerPro.Models"
-    xmlns:controls="using:TaskManagerPro.Controls">
+    xmlns:controls="using:TaskManagerPro.Controls"
+    NavigationCacheMode="Required">
 
     <Grid Padding="24,16,24,24" RowSpacing="12">
         <Grid.ChildrenTransitions>

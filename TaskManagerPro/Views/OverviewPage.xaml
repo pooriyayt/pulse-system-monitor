@@ -2,7 +2,8 @@
     x:Class="TaskManagerPro.Views.OverviewPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:TaskManagerPro.Controls">
+    xmlns:controls="using:TaskManagerPro.Controls"
+    NavigationCacheMode="Required">
 
     <ScrollViewer Padding="24,16,24,24">
         <StackPanel Spacing="16" MaxWidth="1000" HorizontalAlignment="Stretch">
