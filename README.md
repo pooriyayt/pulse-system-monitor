@@ -38,7 +38,15 @@
 
 ## 📥 Installation
 
-1. Download the installer: **[Pulse-1.5-Setup.exe](https://dl1.wl-std.com/Pulse-1.5-Setup.exe)**
+### Option 1 — Winget (recommended)
+
+```powershell
+winget install wl-std.pulse
+```
+
+### Option 2 — Manual download
+
+1. Download: **[Pulse-1.5-Setup.exe](https://dl1.wl-std.com/Pulse-1.5-Setup.exe)**
 2. Run it — it will ask for administrator access once (to trust the certificate and install)
 3. Done. Find **Pulse** in the Start menu, plus a shortcut on your desktop.
 
@@ -135,7 +143,15 @@ This will:
 
 ## 📥 نصب
 
-۱. اینستالر را دانلود کنید: **[Pulse-1.5-Setup.exe](https://dl1.wl-std.com/Pulse-1.5-Setup.exe)**
+### روش اول — Winget (پیشنهادی)
+
+```powershell
+winget install wl-std.pulse
+```
+
+### روش دوم — دانلود دستی
+
+۱. دانلود: **[Pulse-1.5-Setup.exe](https://dl1.wl-std.com/Pulse-1.5-Setup.exe)**
 ۲. اجرایش کنید — یک بار دسترسی ادمین می‌خواهد (برای Trust گواهی و نصب)
 ۳. تمام! **Pulse** در منوی استارت است و شورتکاتش روی دسکتاپ.
 
