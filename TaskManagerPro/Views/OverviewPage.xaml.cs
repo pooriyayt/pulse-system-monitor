@@ -40,6 +40,7 @@ namespace TaskManagerPro.Views
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            AppSettings.LanguageChanged += ApplyL10n;
             ApplyL10n();
             // مشخصات سخت‌افزار را در پس‌زمینه بخوان تا UI قفل نشود
             CpuModelText.Text = await Task.Run(HardwareInfo.GetCpuName);
@@ -64,6 +65,7 @@ namespace TaskManagerPro.Views
             _timer?.Stop();
             _timer = null;
             AppSettings.RefreshIntervalChanged -= OnIntervalChanged;
+            AppSettings.LanguageChanged -= ApplyL10n;
         }
 
         private void OnIntervalChanged()
@@ -107,7 +109,7 @@ namespace TaskManagerPro.Views
             for (int i = 0; i < _coreBars.Count && i < s.CpuCores.Length; i++)
             {
                 _coreBars[i].Value = s.CpuCores[i];
-                _coreLabels[i].Text = $"Core {i}: {s.CpuCores[i]:F0}%";
+                _coreLabels[i].Text = $"{L10n.T("Core")} {i}: {s.CpuCores[i]:F0}%";
             }
 
             // Memory + Page File
@@ -135,7 +137,7 @@ namespace TaskManagerPro.Views
 
             // Disk
             DiskGraph.AddValue(s.DiskPercent);
-            DiskText.Text = $"{s.DiskPercent:F0}%   |   Read: {s.DiskReadMBs:F1} MB/s   |   Write: {s.DiskWriteMBs:F1} MB/s";
+            DiskText.Text = $"{s.DiskPercent:F0}%   |   {L10n.T("Read")}: {s.DiskReadMBs:F1} MB/s   |   {L10n.T("Write")}: {s.DiskWriteMBs:F1} MB/s";
 
             // Network
             NetDownGraph.AddValue(s.NetRecvKBs);
@@ -154,7 +156,7 @@ namespace TaskManagerPro.Views
         {
             for (int i = 0; i < count; i++)
             {
-                var label = new TextBlock { Text = $"Core {i}", FontSize = 12, Opacity = 0.8 };
+                var label = new TextBlock { Text = $"{L10n.T("Core")} {i}", FontSize = 12, Opacity = 0.8 };
                 var bar = new ProgressBar { Maximum = 100, Margin = new Thickness(0, 2, 16, 0) };
 
                 var panel = new StackPanel();

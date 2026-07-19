@@ -27,6 +27,7 @@ namespace TaskManagerPro.Views
                 ApplyL10n();
                 await LoadServicesAsync();
             };
+            AppSettings.LanguageChanged += async () => { ApplyL10n(); await LoadServicesAsync(); };
         }
 
         private void ApplyL10n()
@@ -54,7 +55,7 @@ namespace TaskManagerPro.Views
                                 {
                                     Name = sc.ServiceName,
                                     DisplayName = sc.DisplayName,
-                                    Status = sc.Status.ToString(),
+                                    Status = L10n.T(sc.Status.ToString()),
                                 });
                             }
                             catch { }
@@ -125,7 +126,8 @@ namespace TaskManagerPro.Views
             }
             catch (Exception ex)
             {
-                ShowNote($"Could not {action} \"{row.DisplayName}\". Most service operations require running the app as Administrator. ({ex.Message})");
+                var actionText = action switch { "start" => L10n.T("Start"), "stop" => L10n.T("Stop"), "restart" => L10n.T("Restart"), _ => action };
+                ShowNote(string.Format(L10n.T("Could not {0} \"{1}\". Most service operations require running the app as Administrator. ({2})"), actionText, row.DisplayName, ex.Message));
             }
         }
 

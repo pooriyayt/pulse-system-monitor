@@ -7,7 +7,18 @@ namespace TaskManagerPro.Models
     {
         public string Key { get; set; } = "";
         public string Glyph { get; set; } = "\uE950";
-        public string Title { get; set; } = "";
+
+        private string _title = "";
+        public string Title
+        {
+            get => _title;
+            set
+            {
+                if (_title == value) return;
+                _title = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
+            }
+        }
 
         private string _subtitle = "";
         /// <summary>مقدار زنده (مثلاً "12% • 3.4 GHz") که هر ثانیه به‌روز می‌شود</summary>

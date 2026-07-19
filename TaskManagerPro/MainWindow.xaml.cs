@@ -35,7 +35,7 @@ namespace TaskManagerPro
             AppSettings.LanguageChanged += ApplyL10n;
         }
 
-        /// <summary>ترجمه‌ی آیتم‌های ناوبری (English / فارسی)</summary>
+        /// <summary>ترجمه‌ی آیتم‌های ناوبری و اعمال جهت متن</summary>
         private void ApplyL10n()
         {
             foreach (var item in NavView.MenuItems)
@@ -53,6 +53,9 @@ namespace TaskManagerPro
                     };
                 }
             }
+            if (NavView.SettingsItem is NavigationViewItem settingsNvi)
+                settingsNvi.Content = L10n.T("Settings");
+            L10n.ApplyDirection(this);
         }
 
         // وقتی Sidebar برای اولین بار بارگذاری شد، صفحه‌ی Overview را باز کن.

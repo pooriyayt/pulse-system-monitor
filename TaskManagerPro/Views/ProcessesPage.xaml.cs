@@ -318,7 +318,7 @@ namespace TaskManagerPro.Views
             }
 
             RebuildView();
-            StatusText.Text = $"{_nodes.Count} processes  \u2022  updated {DateTime.Now:HH:mm:ss}";
+            StatusText.Text = string.Format(L10n.T("{0} processes  \u2022  updated {1}"), _nodes.Count, DateTime.Now.ToString("HH:mm:ss"));
         }
 
         /// <summary>فیلتر پیشرفته: همه / فقط برنامه‌ها / CPU بیش از ۱٪ / حافظه بیش از 100MB / شبکه‌ی فعال</summary>
@@ -365,7 +365,7 @@ namespace TaskManagerPro.Views
         {
             var list = _nodes.Values.Where(n => n.Category == category && PassFilter(n)).ToList();
             SortList(list, sort);
-            group.Name = $"{group.BaseTitle} ({list.Count})";
+            group.Name = $"{L10n.T(group.BaseTitle)} ({list.Count})";
             SyncCollection(group.Children, list);
         }
 
@@ -446,8 +446,8 @@ namespace TaskManagerPro.Views
             EndTaskBtn.IsEnabled = ok;
 
             bool isExplorer = ok && string.Equals(_selected!.Name, "explorer", StringComparison.OrdinalIgnoreCase);
-            EndTaskLabel.Text = isExplorer ? "Restart" : "End task";
-            MenuEndTask.Text = isExplorer ? "Restart" : "End task";
+            EndTaskLabel.Text = isExplorer ? L10n.T("Restart") : L10n.T("End task");
+            MenuEndTask.Text = isExplorer ? L10n.T("Restart") : L10n.T("End task");
         }
 
         // ---------- End task / Restart ----------
@@ -516,12 +516,12 @@ namespace TaskManagerPro.Views
                 }
                 else
                 {
-                    ShowError($"Could not end \"{n.Name}\" — access denied. Try running the app as administrator.");
+                    ShowError(string.Format(L10n.T("Could not end \"{0}\" — access denied. Try running the app as administrator."), n.Name));
                 }
             }
             catch (Exception ex)
             {
-                ShowError($"Could not end \"{n.Name}\": {ex.Message}");
+                ShowError(string.Format(L10n.T("Could not end \"{0}\": {1}"), n.Name, ex.Message));
             }
         }
 
@@ -849,6 +849,7 @@ namespace TaskManagerPro.Views
             ((ComboBoxItem)FilterCombo.Items[2]).Content = L10n.T("Filter: CPU > 1%");
             ((ComboBoxItem)FilterCombo.Items[3]).Content = L10n.T("Filter: Memory > 100 MB");
             ((ComboBoxItem)FilterCombo.Items[4]).Content = L10n.T("Filter: Active network");
+            RebuildView();
         }
 
         // ---------- نوار ابزار ----------

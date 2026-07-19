@@ -1,5 +1,10 @@
-﻿# ============================================================
+# ============================================================
 #  Pulse — Installer Builder
+#  Builds the latest version in Release, signs it,
+#  and produces a single setup exe (Pulse-<ver>-Setup.exe)
+#  in the Installer folder. Share only that one file.
+#
+#  Run: right-click > Run with PowerShell  (or: .\build-installer.ps1)
 # ============================================================
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
@@ -7,13 +12,13 @@ $proj = Join-Path $root "TaskManagerPro\TaskManagerPro.csproj"
 $outDir = Join-Path $root "Installer"
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
-# ---- نسخه از منیفست ----
+# ---- version from manifest ----
 [xml]$manifest = Get-Content (Join-Path $root "TaskManagerPro\Package.appxmanifest")
-$version = $manifest.Package.Identity.Version   # e.g. 1.5.0.0
+$version = $manifest.Package.Identity.Version   # e.g. 1.7.0.0
 $shortVer = ($version -split '\.')[0..1] -join '.'
 Write-Host "Building Pulse $shortVer ..." -ForegroundColor Cyan
 
-# ---- گواهی امضا ----
+# ---- signing certificate (create if missing) ----
 $cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=TaskManagerPro" } | Select-Object -First 1
 if (-not $cert) {
     Write-Host "Creating signing certificate..." -ForegroundColor Yellow
@@ -24,7 +29,7 @@ if (-not $cert) {
 $cerPath = Join-Path $env:TEMP "TaskManagerPro.cer"
 Export-Certificate -Cert $cert -FilePath $cerPath | Out-Null
 
-# ---- بیلد پکیج MSIX امضاشده ----
+# ---- build signed MSIX package ----
 $pkgDir = Join-Path $env:TEMP "TMP-msix-build"
 Remove-Item $pkgDir -Recurse -Force -ErrorAction SilentlyContinue
 dotnet build $proj -c Release -p:Platform=x64 `
@@ -40,7 +45,7 @@ if ($LASTEXITCODE -ne 0) { Write-Host "BUILD FAILED" -ForegroundColor Red; exit 
 $msix = Get-ChildItem $pkgDir -Recurse -Filter *.msix | Select-Object -First 1
 if (-not $msix) { Write-Host "MSIX not found!" -ForegroundColor Red; exit 1 }
 
-# ---- فایل‌های داخل اینستالر ----
+# ---- stage installer files ----
 $stage = Join-Path $env:TEMP "TMP-installer-stage"
 Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $stage | Out-Null
@@ -48,8 +53,8 @@ Copy-Item $msix.FullName (Join-Path $stage "app.msix")
 Copy-Item $cerPath (Join-Path $stage "app.cer")
 Copy-Item (Join-Path $root "TaskManagerPro\Assets\app.ico") (Join-Path $stage "app.ico")
 
-# ---- سورس اینستالر (exe واقعی — msix و گواهی داخلش امبد می‌شوند) ----
-# با csc خود ویندوز (NET Framework 4.8.) کامپایل می‌شود؛ روی همه‌ی ویندوزهای 10/11 اجرا می‌شود.
+# ---- installer source (real exe — msix and cert embedded inside) ----
+# compiled with Windows built-in csc (.NET Framework 4.8); runs on all Windows 10/11 machines.
 $installerCs = Join-Path $env:TEMP "TMProInstaller.cs"
 @'
 using System;
@@ -244,7 +249,7 @@ static class Setup
 }
 '@ -replace '__VER__', $version -replace '__SHORTVER__', $shortVer | Set-Content $installerCs -Encoding UTF8
 
-# ---- کامپایل exe تکی ----
+# ---- compile single exe ----
 $setupExe = Join-Path $outDir "Pulse-$shortVer-Setup.exe"
 Remove-Item $setupExe -Force -ErrorAction SilentlyContinue
 
@@ -262,8 +267,8 @@ if (Test-Path $setupExe) {
     $mb = [Math]::Round((Get-Item $setupExe).Length / 1MB, 1)
     Write-Host ""
     Write-Host "DONE!  $setupExe  ($mb MB)" -ForegroundColor Green
-    Write-Host "این یک فایل را به اشتراک بگذار — کاربر فقط اجرایش می‌کند." -ForegroundColor Green
+    Write-Host "Share this single file - users just run it." -ForegroundColor Green
 } else {
-    Write-Host "IExpress failed to produce the exe." -ForegroundColor Red
+    Write-Host "Failed to produce the exe." -ForegroundColor Red
     exit 1
 }

@@ -269,6 +269,8 @@ namespace TaskManagerPro.Views
         {
             if (_initializing || LangCombo.SelectedIndex < 0) return;
             AppSettings.Language = LangCombo.SelectedIndex;
+            ApplyL10n();
+            L10n.ApplyDirection();
         }
 
         // ---- آلارم مصرف ----

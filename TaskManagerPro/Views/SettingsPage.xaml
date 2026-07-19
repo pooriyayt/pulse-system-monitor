@@ -44,6 +44,9 @@
                     <ComboBox x:Name="LangCombo" Width="220" SelectionChanged="Lang_Changed">
                         <ComboBoxItem Content="English" />
                         <ComboBoxItem Content="فارسی (راست‌به‌چپ)" />
+                        <ComboBoxItem Content="Русский" />
+                        <ComboBoxItem Content="Azərbaycan dili" />
+                        <ComboBoxItem Content="Türkçe" />
                     </ComboBox>
                 </StackPanel>
             </Border>
@@ -291,7 +294,7 @@
                                   Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                         <TextBlock x:Name="AboutHeader" Text="About" Style="{StaticResource SubtitleTextBlockStyle}" />
                     </StackPanel>
-                    <TextBlock Text="Pulse 1.5 — System Monitor" />
+                    <TextBlock Text="Pulse 1.7 — System Monitor" />
                     <TextBlock x:Name="AboutDesc" Text="A task manager for Windows 11, built with WinUI 3 and .NET 8."
                                Opacity="0.7"
                                TextWrapping="Wrap" />

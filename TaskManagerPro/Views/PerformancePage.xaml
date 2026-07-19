@@ -20,7 +20,7 @@
         <StackPanel Orientation="Horizontal" Spacing="12">
             <FontIcon Glyph="&#xEC4A;" FontSize="24"
                       Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-            <TextBlock Text="Performance" Style="{StaticResource TitleTextBlockStyle}" />
+            <TextBlock x:Name="PerfTitle" Text="Performance" Style="{StaticResource TitleTextBlockStyle}" />
         </StackPanel>
 
         <Grid Grid.Row="1" ColumnSpacing="16">
@@ -62,7 +62,7 @@
                             </Grid.ColumnDefinitions>
                             <FontIcon Glyph="{x:Bind Glyph}" FontSize="20" />
                             <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="{x:Bind Title}"
+                                <TextBlock Text="{x:Bind Title, Mode=OneWay}"
                                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                                 <TextBlock Text="{x:Bind Subtitle, Mode=OneWay}"
                                            Opacity="0.7"
@@ -187,7 +187,7 @@
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE950;" FontSize="14" Opacity="0.7" />
-                                <TextBlock Text="Logical processors" Opacity="0.7" />
+                                <TextBlock x:Name="LogicalProcLabel" Text="Logical processors" Opacity="0.7" />
                             </StackPanel>
                             <VariableSizedWrapGrid x:Name="CoresPanel"
                                                    Orientation="Horizontal"

@@ -317,13 +317,13 @@ namespace TaskManagerPro.Helpers
         // ---------- زبان ----------
 
         private static int _language;
-        /// <summary>زبان رابط: 0 = English، 1 = فارسی (با RTL)</summary>
+        /// <summary>زبان رابط: 0=English، 1=فارسی (RTL)، 2=Русский، 3=Azərbaycan، 4=Türkçe</summary>
         public static int Language
         {
             get => _language;
             set
             {
-                value = Math.Clamp(value, 0, 1);
+                value = Math.Clamp(value, 0, 4);
                 if (_language == value) return;
                 _language = value;
                 Save();
@@ -390,7 +390,7 @@ namespace TaskManagerPro.Helpers
                 if (s.TryGetValue("AlarmRam", out var ar) && ar is int ari) _alarmRam = Math.Clamp(ari, 50, 100);
                 if (s.TryGetValue("AlarmTemp", out var at) && at is int ati) _alarmTemp = Math.Clamp(ati, 40, 110);
                 if (s.TryGetValue("WidgetOn", out var wg) && wg is bool wb) _widgetEnabled = wb;
-                if (s.TryGetValue("Lang", out var lg) && lg is int lgi) _language = Math.Clamp(lgi, 0, 1);
+                if (s.TryGetValue("Lang", out var lg) && lg is int lgi) _language = Math.Clamp(lgi, 0, 4);
                 if (s.TryGetValue("EndSound", out var es) && es is bool esb) _endTaskSound = esb;
             }
             catch

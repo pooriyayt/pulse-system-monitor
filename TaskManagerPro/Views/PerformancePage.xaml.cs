@@ -40,10 +40,42 @@ namespace TaskManagerPro.Views
             this.InitializeComponent();
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
+            AppSettings.LanguageChanged += ApplyL10n;
+        }
+
+        private void ApplyL10n()
+        {
+            PerfTitle.Text = L10n.T("Performance");
+            LogicalProcLabel.Text = L10n.T("Logical processors");
+            if (HistCombo.Items.Count >= 3)
+            {
+                ((ComboBoxItem)HistCombo.Items[0]).Content = L10n.T("Live");
+                ((ComboBoxItem)HistCombo.Items[1]).Content = L10n.T("Last 10 minutes");
+                ((ComboBoxItem)HistCombo.Items[2]).Content = L10n.T("Last hour");
+            }
+            TopTitle.Text = L10n.T("Top processes");
+            foreach (var item in Items)
+            {
+                item.Title = item.Key switch
+                {
+                    "cpu" => "CPU",
+                    "memory" => L10n.T("Memory"),
+                    "disk" => L10n.T("Disk"),
+                    "network" => L10n.T("Network"),
+                    "sensors" => L10n.T("Sensors"),
+                    _ when item.Key.StartsWith("gpu") => Items.Count(i => i.Key.StartsWith("gpu")) > 1
+                        ? $"GPU {item.Key.Replace("gpu", "")}"
+                        : "GPU",
+                    _ => item.Title,
+                };
+                if (item.Key == "sensors")
+                    item.Subtitle = L10n.T("Temperature / Fan / Voltage / Power");
+            }
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            ApplyL10n();
             // مشخصات ثابت را در پس‌زمینه بخوان تا UI قفل نشود
             _cpuName = await Task.Run(HardwareInfo.GetCpuName);
             _gpuNames = await Task.Run(HardwareInfo.GetGpuNames);
@@ -53,7 +85,7 @@ namespace TaskManagerPro.Views
             if (Items.Count == 0)
             {
                 Items.Add(new PerfSidebarItem { Key = "cpu", Glyph = "\uE950", Title = "CPU" });
-                Items.Add(new PerfSidebarItem { Key = "memory", Glyph = "\uEEA0", Title = "Memory" });
+                Items.Add(new PerfSidebarItem { Key = "memory", Glyph = "\uEEA0", Title = L10n.T("Memory") });
 
                 // یک آیتم برای هر کارت گرافیک (شامل GPU داخلی Intel)
                 var gpuIndexes = first.Gpus.Select(g => g.PhysIndex).Distinct().OrderBy(i => i).ToList();
@@ -71,8 +103,8 @@ namespace TaskManagerPro.Views
                     });
                 }
 
-                Items.Add(new PerfSidebarItem { Key = "disk", Glyph = "\uEDA2", Title = "Disk" });
-                Items.Add(new PerfSidebarItem { Key = "network", Glyph = "\uE839", Title = "Network" });
+                Items.Add(new PerfSidebarItem { Key = "disk", Glyph = "\uEDA2", Title = L10n.T("Disk") });
+                Items.Add(new PerfSidebarItem { Key = "network", Glyph = "\uE839", Title = L10n.T("Network") });
                 Items.Add(new PerfSidebarItem
                 {
                     Key = "sensors",
@@ -100,6 +132,7 @@ namespace TaskManagerPro.Views
             _timer?.Stop();
             _timer = null;
             AppSettings.RefreshIntervalChanged -= OnIntervalChanged;
+            AppSettings.LanguageChanged -= ApplyL10n;
         }
 
         private void OnIntervalChanged()
@@ -283,10 +316,10 @@ namespace TaskManagerPro.Views
                         var g = FindGpu(s, GpuIndex(item.Key));
                         item.Subtitle = g != null
                             ? $"{g.UsagePercent:F0}%  •  {FormatMB(g.DedicatedMB)}"
-                            : "Not available";
+                            : L10n.T("Not available");
                         break;
                     case "disk":
-                        item.Subtitle = $"{s.DiskPercent:F0}%  •  R {s.DiskReadMBs:F1} / W {s.DiskWriteMBs:F1} MB/s";
+                        item.Subtitle = $"{s.DiskPercent:F0}%  •  {L10n.T("Read")} {s.DiskReadMBs:F1} / {L10n.T("Write")} {s.DiskWriteMBs:F1} MB/s";
                         break;
                     case "network":
                         item.Subtitle = $"↓ {FormatSpeed(s.NetRecvKBs)}   ↑ {FormatSpeed(s.NetSentKBs)}";
@@ -326,8 +359,8 @@ namespace TaskManagerPro.Views
                     MainGraph.AddValue(g?.UsagePercent ?? 0);
                     UpdateEngine(Eng0Label, Eng0Graph, "3D", "3D", g);
                     UpdateEngine(Eng1Label, Eng1Graph, "Copy", "Copy", g);
-                    UpdateEngine(Eng2Label, Eng2Graph, "Video Decode", "VideoDecode", g);
-                    UpdateEngine(Eng3Label, Eng3Graph, "Video Processing", "VideoProcessing", g);
+                    UpdateEngine(Eng2Label, Eng2Graph, L10n.T("Video Decode"), "VideoDecode", g);
+                    UpdateEngine(Eng3Label, Eng3Graph, L10n.T("Video Processing"), "VideoProcessing", g);
                     SetStats(
                         ("Utilization", g != null ? $"{g.UsagePercent:F0}%" : "N/A"),
                         ("Dedicated memory", g != null ? FormatMB(g.DedicatedMB) : "N/A"),
@@ -423,7 +456,7 @@ namespace TaskManagerPro.Views
             {
                 for (int i = 0; i < s.CpuCores.Length; i++)
                 {
-                    var label = new TextBlock { Text = $"Core {i}", FontSize = 12, Opacity = 0.8 };
+                    var label = new TextBlock { Text = $"{L10n.T("Core")} {i}", FontSize = 12, Opacity = 0.8 };
                     var bar = new ProgressBar { Maximum = 100, Margin = new Thickness(0, 2, 16, 0) };
 
                     var panel = new StackPanel();
@@ -439,7 +472,7 @@ namespace TaskManagerPro.Views
             for (int i = 0; i < _coreBars.Count && i < s.CpuCores.Length; i++)
             {
                 _coreBars[i].Value = s.CpuCores[i];
-                _coreLabels[i].Text = $"Core {i}: {s.CpuCores[i]:F0}%";
+                _coreLabels[i].Text = $"{L10n.T("Core")} {i}: {s.CpuCores[i]:F0}%";
             }
         }
 
@@ -630,7 +663,7 @@ namespace TaskManagerPro.Views
 
             var endAgo = TimeSpan.FromSeconds(offset);
             var startAgo = TimeSpan.FromSeconds(Math.Min(offset + duration, available));
-            HistLabel.Text = $"-{(int)startAgo.TotalMinutes}m … {(offset == 0 ? "now" : $"-{(int)endAgo.TotalMinutes}m")}";
+            HistLabel.Text = $"-{(int)startAgo.TotalMinutes}m … {(offset == 0 ? L10n.T("now") : $"-{(int)endAgo.TotalMinutes}m")}";
         }
 
         private static string FormatSpeed(double kbs) =>

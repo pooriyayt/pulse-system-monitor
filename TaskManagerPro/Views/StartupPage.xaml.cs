@@ -119,7 +119,7 @@ namespace TaskManagerPro.Views
             {
                 // برگرداندن کلید به حالت قبل
                 toggle.IsOn = item.Enabled;
-                ShowError($"{ex.Message} — برای تغییر آیتم‌های «All users» برنامه را با Run as administrator اجرا کن.");
+                ShowError($"{ex.Message} — {L10n.T("For \"All users\" startup items, run the app as administrator.")}");
             }
         }
 

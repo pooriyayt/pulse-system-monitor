@@ -35,7 +35,7 @@ namespace TaskManagerPro.Helpers
                     var v = Windows.ApplicationModel.Package.Current.Id.Version;
                     return $"{v.Major}.{v.Minor}";
                 }
-                catch { return "1.5"; }
+                catch { return "1.7"; }
             }
         }
 

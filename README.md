@@ -4,7 +4,7 @@
 
 **A beautiful, modern task manager & system monitor for Windows 11, built with WinUI 3 and .NET 8.**
 
-[⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-1.5-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
+[⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-1.7-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
 *Open source — read the code, audit it, build it yourself.*
 
@@ -33,7 +33,7 @@
 - **System Tray** — live mini-graphs in the tray, fully customizable per icon (color, background, size)
 - **Usage alarms** — Windows notification when CPU / RAM / temperature crosses your limit
 - **7 themes** (Mica, Liquid Glass, Midnight, Aurora, OLED, Paper…) + **any accent color** (wheel / hex) applied to the whole app
-- **English + فارسی (RTL)** interface
+- **5 languages** — English, فارسی (RTL), Русский, Azərbaycan dili, Türkçe
 - **Auto-update** — checks quietly at launch, downloads the new version and asks you to install
 
 ## 📥 Installation
@@ -46,7 +46,7 @@ winget install wl-std.pulse
 
 ### Option 2 — Manual download
 
-1. Download: **[Pulse-1.5-Setup.exe](https://dl1.wl-std.com/Pulse-1.5-Setup.exe)**
+1. Download: **[Pulse-1.7-Setup.exe](https://dl1.wl-std.com/Pulse-1.7-Setup.exe)**
 2. Run it — it will ask for administrator access once (to trust the certificate and install)
 3. Done. Find **Pulse** in the Start menu, plus a shortcut on your desktop.
 
@@ -109,7 +109,7 @@ This will:
 
 **یک تسک‌منیجر و مانیتور سیستم مدرن و زیبا برای ویندوز ۱۱، ساخته‌شده با WinUI 3 و .NET 8**
 
-[⬇️ دانلود Pulse](https://dl1.wl-std.com/Pulse-1.5-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
+[⬇️ دانلود Pulse](https://dl1.wl-std.com/Pulse-1.7-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
 *متن‌باز — کد را بخوانید، بررسی کنید و خودتان بیلد بگیرید.*
 
@@ -138,7 +138,7 @@ This will:
 - **سیستم تری** — mini-گراف زنده در تری، شخصی‌سازی کامل هر آیکون (رنگ، پس‌زمینه، اندازه)
 - **آلارم مصرف** — نوتیفیکیشن ویندوز وقتی CPU / رم / دما از حد شما رد شود
 - **۷ تم** (Mica، Liquid Glass، Midnight، Aurora، OLED، Paper و…) + **هر رنگ اکسنت دلخواه** (چرخ رنگ / هگز) روی کل برنامه
-- رابط **انگلیسی + فارسی (راست‌به‌چپ)**
+- **۵ زبان** — English، فارسی (RTL)، Русский، Azərbaycan dili، Türkçe
 - **آپدیت خودکار** — هنگام اجرا بی‌صدا چک می‌کند، نسخه‌ی جدید را دانلود و برای نصب از شما می‌پرسد
 
 ## 📥 نصب
@@ -151,7 +151,7 @@ winget install wl-std.pulse
 
 ### روش دوم — دانلود دستی
 
-۱. دانلود: **[Pulse-1.5-Setup.exe](https://dl1.wl-std.com/Pulse-1.5-Setup.exe)**
+۱. دانلود: **[Pulse-1.7-Setup.exe](https://dl1.wl-std.com/Pulse-1.7-Setup.exe)**
 ۲. اجرایش کنید — یک بار دسترسی ادمین می‌خواهد (برای Trust گواهی و نصب)
 ۳. تمام! **Pulse** در منوی استارت است و شورتکاتش روی دسکتاپ.
 
