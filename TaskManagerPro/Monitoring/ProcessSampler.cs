@@ -24,7 +24,7 @@ namespace TaskManagerPro.Monitoring
         {
             public int Pid;
             public string Name = "";
-            public double Cpu, MemMB, DiskMBs, NetKBs, Gpu;
+            public double Cpu, MemMB, DiskMBs, NetKBs, NetDownKBs, NetUpKBs, Gpu;
         }
 
         private static readonly Dictionary<int, (TimeSpan Cpu, DateTime At)> PrevCpu = new();
@@ -40,6 +40,8 @@ namespace TaskManagerPro.Monitoring
                 var now = DateTime.UtcNow;
                 var gpuByPid = SystemMonitor.Instance.GpuByPid;
                 var netRates = NetworkMonitor.Instance.RatesKBs;
+                var netDown = NetworkMonitor.Instance.RecvRatesKBs;
+                var netUp = NetworkMonitor.Instance.SentRatesKBs;
                 var rows = new List<Row>(256);
                 var alive = new HashSet<int>();
 
@@ -90,6 +92,8 @@ namespace TaskManagerPro.Monitoring
 
                             row.Gpu = gpuByPid.TryGetValue(pid, out var g) ? g : 0;
                             row.NetKBs = netRates.TryGetValue(pid, out var n) ? n : 0;
+                            row.NetDownKBs = netDown.TryGetValue(pid, out var nd) ? nd : 0;
+                            row.NetUpKBs = netUp.TryGetValue(pid, out var nu) ? nu : 0;
                             rows.Add(row);
                         }
                         catch { }
@@ -103,36 +107,41 @@ namespace TaskManagerPro.Monitoring
             }
         }
 
-        /// <summary>سه پردازه‌ی پرمصرف بر اساس متریک: cpu / mem / gpu / disk / net</summary>
+        /// <summary>سه پردازه‌ی پرمصرف بر اساس متریک: cpu / mem / gpu / disk / net / netdown / netup</summary>
         public static List<TopProc> Top(string metric, int n = 3)
         {
             List<Row> rows;
             lock (Lock) rows = _rows;
 
-            IEnumerable<Row> sorted = metric switch
+            static double Pick(Row r, string metric) => metric switch
             {
-                "mem" => rows.OrderByDescending(r => r.MemMB),
-                "gpu" => rows.OrderByDescending(r => r.Gpu),
-                "net" => rows.OrderByDescending(r => r.NetKBs),
-                "disk" => rows.OrderByDescending(r => r.DiskMBs),
-                _ => rows.OrderByDescending(r => r.Cpu),
+                "mem" => r.MemMB,
+                "gpu" => r.Gpu,
+                "net" => r.NetKBs,
+                "netdown" => r.NetDownKBs,
+                "netup" => r.NetUpKBs,
+                "disk" => r.DiskMBs,
+                _ => r.Cpu,
             };
 
-            return sorted.Take(n).Select(r => new TopProc
+            return rows.OrderByDescending(r => Pick(r, metric)).Take(n).Select(r => new TopProc
             {
                 Pid = r.Pid,
                 Name = r.Name,
-                Value = metric switch { "mem" => r.MemMB, "gpu" => r.Gpu, "net" => r.NetKBs, "disk" => r.DiskMBs, _ => r.Cpu },
+                Value = Pick(r, metric),
                 Text = metric switch
                 {
                     "mem" => $"{r.MemMB:F0} MB",
                     "gpu" => $"{r.Gpu:F0}%",
-                    "net" => r.NetKBs >= 1024 ? $"{r.NetKBs / 1024.0:F1} MB/s" : $"{r.NetKBs:F0} KB/s",
+                    "net" or "netdown" or "netup" => FormatSpeed(Pick(r, metric)),
                     "disk" => $"{r.DiskMBs:F1} MB/s",
                     _ => $"{r.Cpu:F1}%",
                 },
             }).ToList();
         }
+
+        private static string FormatSpeed(double kbs) =>
+            kbs >= 1024 ? $"{kbs / 1024.0:F1} MB/s" : $"{kbs:F0} KB/s";
 
         // ---------- P/Invoke برای I/O دیسک ----------
 

@@ -32,8 +32,12 @@ namespace TaskManagerPro.Views
 
         // گراف تاریخچه‌دار: 0 = زنده، 1 = ۱۰ دقیقه، 2 = ۱ ساعت
         private int _histMode;
+        // همین حالت‌ها برای گراف دوم (آپلود) — کاملاً مستقل از گراف اول
+        private int _histMode2;
         private readonly List<TextBlock> _topNames = new();
         private readonly List<TextBlock> _topValues = new();
+        private readonly List<TextBlock> _topNames2 = new();
+        private readonly List<TextBlock> _topValues2 = new();
 
         public PerformancePage()
         {
@@ -47,11 +51,12 @@ namespace TaskManagerPro.Views
         {
             PerfTitle.Text = L10n.T("Performance");
             LogicalProcLabel.Text = L10n.T("Logical processors");
-            if (HistCombo.Items.Count >= 3)
+            foreach (var combo in new[] { HistCombo, SecondHistCombo })
             {
-                ((ComboBoxItem)HistCombo.Items[0]).Content = L10n.T("Live");
-                ((ComboBoxItem)HistCombo.Items[1]).Content = L10n.T("Last 10 minutes");
-                ((ComboBoxItem)HistCombo.Items[2]).Content = L10n.T("Last hour");
+                if (combo.Items.Count < 3) continue;
+                ((ComboBoxItem)combo.Items[0]).Content = L10n.T("Live");
+                ((ComboBoxItem)combo.Items[1]).Content = L10n.T("Last 10 minutes");
+                ((ComboBoxItem)combo.Items[2]).Content = L10n.T("Last hour");
             }
             TopTitle.Text = L10n.T("Top processes");
             foreach (var item in Items)
@@ -76,11 +81,17 @@ namespace TaskManagerPro.Views
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             ApplyL10n();
+
+            // ساخت شمارنده‌ها سنگین است — در پس‌زمینه و بدون قفل کردن UI
+            await Monitoring.MonitorWarmup.StartAsync();
+
             // مشخصات ثابت را در پس‌زمینه بخوان تا UI قفل نشود
             _cpuName = await Task.Run(HardwareInfo.GetCpuName);
             _gpuNames = await Task.Run(HardwareInfo.GetGpuNames);
 
-            var first = await Task.Run(SystemMonitor.Instance.Read);
+            // lambda لازم است: Task.Run(SystemMonitor.Instance.Read) خودِ Instance را
+            // روی ترد UI می‌ساخت و باعث فریز می‌شد
+            var first = await Task.Run(() => SystemMonitor.Instance.Read());
 
             if (Items.Count == 0)
             {
@@ -154,10 +165,18 @@ namespace TaskManagerPro.Views
             MainGraph.Clear();
             SecondGraph.Clear();
             MainGraph.ExitStatic();
+            SecondGraph.ExitStatic();
             CoresCard.Visibility = Visibility.Collapsed;
             SecondCard.Visibility = Visibility.Collapsed;
+            SecondTopCard.Visibility = Visibility.Collapsed;
+            SecondHistRow.Visibility = Visibility.Collapsed;
             EnginesCard.Visibility = Visibility.Collapsed;
             SensorsCard.Visibility = Visibility.Collapsed;
+
+            // واحد پیش‌فرض اعداد محور (برای هر قطعه پایین‌تر تنظیم می‌شود)
+            MainGraph.Unit = TaskManagerPro.Controls.GraphUnit.Percent;
+            SecondGraph.Unit = TaskManagerPro.Controls.GraphUnit.Percent;
+            UpdateSpanLabels();
 
             bool isSensors = item.Key == "sensors";
             MainCard.Visibility = isSensors ? Visibility.Collapsed : Visibility.Visible;
@@ -166,8 +185,11 @@ namespace TaskManagerPro.Views
 
             // برگشت به حالت زنده هنگام عوض شدن قطعه
             _histMode = 0;
+            _histMode2 = 0;
             if (HistCombo.SelectedIndex != 0) HistCombo.SelectedIndex = 0;
+            if (SecondHistCombo.SelectedIndex != 0) SecondHistCombo.SelectedIndex = 0;
             HistScrollRow.Visibility = Visibility.Collapsed;
+            SecondHistCombo.Visibility = Visibility.Collapsed;
 
             DetailIcon.Glyph = item.Glyph;
             DetailTitle.Text = item.Title;
@@ -215,6 +237,7 @@ namespace TaskManagerPro.Views
                     {
                         eg.AutoScale = false;
                         eg.MaxValue = 100;
+                        eg.ShowAxis = false;
                         eg.Clear();
                     }
                     break;
@@ -225,15 +248,21 @@ namespace TaskManagerPro.Views
                     MainGraphLabel.Text = L10n.T("Active time (%)");
                     SecondCard.Visibility = Visibility.Visible;
                     SecondGraph.AutoScale = true;
+                    SecondGraph.Unit = TaskManagerPro.Controls.GraphUnit.MegaBytesPerSec;
                     SecondGraphLabel.Text = L10n.T("Transfer rate — Read + Write (MB/s)");
                     break;
 
                 case "network":
                     MainGraph.AutoScale = true;
+                    MainGraph.Unit = TaskManagerPro.Controls.GraphUnit.SpeedKBs;
                     MainGraphLabel.Text = L10n.T("Download");
                     SecondCard.Visibility = Visibility.Visible;
+                    SecondTopCard.Visibility = Visibility.Visible;
                     SecondGraph.AutoScale = true;
+                    SecondGraph.Unit = TaskManagerPro.Controls.GraphUnit.SpeedKBs;
                     SecondGraphLabel.Text = L10n.T("Upload");
+                    // فقط گراف آپلود تاریخچه‌ی مستقل دارد
+                    SecondHistCombo.Visibility = Visibility.Visible;
                     break;
             }
         }
@@ -252,16 +281,19 @@ namespace TaskManagerPro.Views
                 bool wantSensors = _selectedKey == "sensors";
                 bool wantGpuTemp = KeyKind(_selectedKey) == "gpu";
                 string topMetric = TopMetricKey();
+                string topMetric2 = SecondTopMetricKey();
 
-                var (s, tops, sensors) = await Task.Run(() =>
+                var (s, tops, tops2, sensors) = await Task.Run(() =>
                 {
                     var snap = SystemMonitor.Instance.Read();
                     List<TopProc>? top = null;
+                    List<TopProc>? top2 = null;
                     if (topMetric.Length > 0)
                     {
                         try { NetworkMonitor.Instance.Snapshot(); } catch { }
                         ProcessSampler.Sample();
                         top = ProcessSampler.Top(topMetric);
+                        if (topMetric2.Length > 0) top2 = ProcessSampler.Top(topMetric2);
                     }
                     var sens = wantSensors ? SensorMonitor.Read() : null;
 
@@ -272,14 +304,16 @@ namespace TaskManagerPro.Views
                         if (t > 0) snap.GpuTempC = t;
                     }
 
-                    return (snap, top, sens);
+                    return (snap, top, top2, sens);
                 });
 
                 UpdateSidebar(s);
                 UpdateDetail(s);
                 if (tops != null) UpdateTop(tops);
+                if (tops2 != null) UpdateSecondTop(tops2);
                 if (sensors != null) UpdateSensors(sensors);
-                if (_histMode > 0) UpdateHistory();
+                if (_histMode > 0) UpdateMainHistory();
+                if (_histMode2 > 0) UpdateSecondHistory();
             }
             catch
             {
@@ -485,13 +519,19 @@ namespace TaskManagerPro.Views
             "memory" => "mem",
             "gpu" => "gpu",
             "disk" => "disk",
-            "network" => "net",
+            "network" => "netdown",
             _ => "",
         };
 
+        /// <summary>متریک Top processes گراف دوم (فعلاً فقط آپلود در بخش شبکه)</summary>
+        private string SecondTopMetricKey() =>
+            KeyKind(_selectedKey) == "network" ? "netup" : "";
+
         private void UpdateTop(List<TopProc> tops)
         {
-            TopTitle.Text = L10n.T("Top processes");
+            TopTitle.Text = KeyKind(_selectedKey) == "network"
+                ? $"{L10n.T("Top processes")} — {L10n.T("Download")}"
+                : L10n.T("Top processes");
 
             while (_topNames.Count < 3)
             {
@@ -518,6 +558,40 @@ namespace TaskManagerPro.Views
                 {
                     _topNames[i].Text = $"{tops[i].Name}  (PID {tops[i].Pid})";
                     _topValues[i].Text = tops[i].Text;
+                }
+            }
+        }
+
+        /// <summary>پرمصرف‌ترین پردازه‌های گراف دوم (آپلود)</summary>
+        private void UpdateSecondTop(List<TopProc> tops)
+        {
+            SecondTopTitle.Text = $"{L10n.T("Top processes")} — {L10n.T("Upload")}";
+
+            while (_topNames2.Count < 3)
+            {
+                var grid = new Grid();
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var name = new TextBlock { FontSize = 13, TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis };
+                var val = new TextBlock { FontSize = 13, Opacity = 0.8 };
+                Grid.SetColumn(val, 1);
+                grid.Children.Add(name);
+                grid.Children.Add(val);
+
+                SecondTopPanel.Children.Add(grid);
+                _topNames2.Add(name);
+                _topValues2.Add(val);
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                bool used = i < tops.Count;
+                ((Grid)SecondTopPanel.Children[i]).Visibility = used ? Visibility.Visible : Visibility.Collapsed;
+                if (used)
+                {
+                    _topNames2[i].Text = $"{tops[i].Name}  (PID {tops[i].Pid})";
+                    _topValues2[i].Text = tops[i].Text;
                 }
             }
         }
@@ -628,6 +702,10 @@ namespace TaskManagerPro.Views
             _ => "cpu",
         };
 
+        /// <summary>کلید HistoryStore برای گراف دوم ("" یعنی تاریخچه ندارد)</summary>
+        private string SecondHistKey() =>
+            KeyKind(_selectedKey) == "network" ? "netup" : "";
+
         private void Hist_Changed(object sender, SelectionChangedEventArgs e)
         {
             if (HistCombo.SelectedIndex < 0) return;
@@ -642,28 +720,94 @@ namespace TaskManagerPro.Views
             {
                 HistScrollRow.Visibility = Visibility.Visible;
                 HistSlider.Value = 100; // 100 = تا همین الان
-                UpdateHistory();
+                UpdateMainHistory();
             }
+            UpdateSpanLabels();
+        }
+
+        private void SecondHist_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (SecondHistCombo.SelectedIndex < 0) return;
+            _histMode2 = SecondHistCombo.SelectedIndex;
+
+            if (_histMode2 == 0 || SecondHistKey().Length == 0)
+            {
+                _histMode2 = SecondHistKey().Length == 0 ? 0 : _histMode2;
+                SecondGraph.ExitStatic();
+                SecondHistRow.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                SecondHistRow.Visibility = Visibility.Visible;
+                SecondHistSlider.Value = 100;
+                UpdateSecondHistory();
+            }
+            UpdateSpanLabels();
         }
 
         private void HistSlider_Changed(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
-            if (_histMode > 0) UpdateHistory();
+            if (_histMode > 0) UpdateMainHistory();
         }
 
-        private void UpdateHistory()
+        private void SecondHistSlider_Changed(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            if (_histMode2 > 0) UpdateSecondHistory();
+        }
+
+        /// <summary>برچسب بازه‌ی زمانی گوشه‌ی گراف‌ها (نشان می‌دهد گراف چند دقیقه را پوشش می‌دهد)</summary>
+        private void UpdateSpanLabels()
+        {
+            // حالت زنده: ۶۰ نقطه × فاصله‌ی رفرش
+            string live = string.Format(L10n.T("Last {0} s"),
+                Math.Max(1, (int)Math.Round(60 * AppSettings.RefreshIntervalMs / 1000.0)));
+
+            static string ModeText(int mode, string live) => mode switch
+            {
+                1 => L10n.T("Last 10 minutes"),
+                2 => L10n.T("Last hour"),
+                _ => live,
+            };
+
+            MainGraph.SpanText = ModeText(_histMode, live);
+            SecondGraph.SpanText = ModeText(SecondHistKey().Length > 0 ? _histMode2 : 0, live);
+        }
+
+        private void UpdateMainHistory()
         {
             int duration = _histMode == 1 ? 600 : 3600;
             int available = Monitoring.HistoryStore.Count;
+            int offset = SliderOffset(HistSlider.Value, duration, available);
+
+            MainGraph.SetStaticSeries(Monitoring.HistoryStore.GetSeries(HistKey(), duration, offset));
+            HistLabel.Text = HistRangeText(offset, duration, available);
+        }
+
+        private void UpdateSecondHistory()
+        {
+            string key = SecondHistKey();
+            if (key.Length == 0) { SecondGraph.ExitStatic(); return; }
+
+            int duration = _histMode2 == 1 ? 600 : 3600;
+            int available = Monitoring.HistoryStore.Count;
+            int offset = SliderOffset(SecondHistSlider.Value, duration, available);
+
+            SecondGraph.SetStaticSeries(Monitoring.HistoryStore.GetSeries(key, duration, offset));
+            SecondHistLabel.Text = HistRangeText(offset, duration, available);
+        }
+
+        /// <summary>مقدار اسلایدر (۱۰۰ = تا همین الان) را به «چند ثانیه قبل» تبدیل می‌کند</summary>
+        private static int SliderOffset(double sliderValue, int duration, int available)
+        {
             int maxOffset = Math.Max(0, available - duration);
-            int offset = (int)((100 - HistSlider.Value) / 100.0 * maxOffset);
+            return (int)((100 - sliderValue) / 100.0 * maxOffset);
+        }
 
-            var series = Monitoring.HistoryStore.GetSeries(HistKey(), duration, offset);
-            MainGraph.SetStaticSeries(series);
-
+        private static string HistRangeText(int offset, int duration, int available)
+        {
             var endAgo = TimeSpan.FromSeconds(offset);
-            var startAgo = TimeSpan.FromSeconds(Math.Min(offset + duration, available));
-            HistLabel.Text = $"-{(int)startAgo.TotalMinutes}m … {(offset == 0 ? L10n.T("now") : $"-{(int)endAgo.TotalMinutes}m")}";
+            var startAgo = TimeSpan.FromSeconds(Math.Min(offset + duration, Math.Max(available, duration)));
+            return $"-{(int)startAgo.TotalMinutes}m … {(offset == 0 ? L10n.T("now") : $"-{(int)endAgo.TotalMinutes}m")}";
         }
 
         private static string FormatSpeed(double kbs) =>

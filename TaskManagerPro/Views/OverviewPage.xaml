@@ -5,7 +5,8 @@
     xmlns:controls="using:TaskManagerPro.Controls"
     NavigationCacheMode="Required">
 
-    <ScrollViewer Padding="24,16,24,24">
+    <Grid>
+      <ScrollViewer x:Name="ContentScroller" Padding="24,16,24,24">
         <StackPanel Spacing="16" MaxWidth="1000" HorizontalAlignment="Stretch">
 
             <StackPanel Orientation="Horizontal" Spacing="12">
@@ -104,7 +105,7 @@
                                 <FontIcon Glyph="&#xE896;" FontSize="12" Opacity="0.7" />
                                 <TextBlock x:Name="NetDownLabel" Text="Download" Opacity="0.7" />
                             </StackPanel>
-                            <controls:LiveGraph x:Name="NetDownGraph" Height="90" AutoScale="True" />
+                            <controls:LiveGraph x:Name="NetDownGraph" Height="90" AutoScale="True" Unit="SpeedKBs" />
                             <TextBlock x:Name="NetDownText" Style="{StaticResource BodyStrongTextBlockStyle}" />
                         </StackPanel>
 
@@ -113,7 +114,7 @@
                                 <FontIcon Glyph="&#xE898;" FontSize="12" Opacity="0.7" />
                                 <TextBlock x:Name="NetUpLabel" Text="Upload" Opacity="0.7" />
                             </StackPanel>
-                            <controls:LiveGraph x:Name="NetUpGraph" Height="90" AutoScale="True" />
+                            <controls:LiveGraph x:Name="NetUpGraph" Height="90" AutoScale="True" Unit="SpeedKBs" />
                             <TextBlock x:Name="NetUpText" Style="{StaticResource BodyStrongTextBlockStyle}" />
                         </StackPanel>
                     </Grid>
@@ -136,5 +137,19 @@
             </Border>
 
         </StackPanel>
-    </ScrollViewer>
+      </ScrollViewer>
+
+      <!-- لودینگ تا آماده شدن اولین نمونه‌ی شمارنده‌ها (برنامه از همان ثانیه‌ی اول باز و روان است) -->
+      <StackPanel x:Name="LoadingPanel"
+                  Spacing="12"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center">
+        <ProgressRing IsActive="True" Width="40" Height="40"
+                      HorizontalAlignment="Center" />
+        <TextBlock x:Name="LoadingText"
+                   Text="Reading system counters..."
+                   Opacity="0.7"
+                   HorizontalAlignment="Center" />
+      </StackPanel>
+    </Grid>
 </Page>

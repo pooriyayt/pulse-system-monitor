@@ -35,11 +35,22 @@ namespace TaskManagerPro
             MainAppWindow = new MainWindow();
             MainAppWindow.Activate();
 
+            // اگر ویندوز برنامه را هنگام بوت اجرا کرده و Tray فعال است،
+            // بی‌سروصدا در Tray بماند و پنجره جلوی چشم کاربر باز نشود.
+            if (Program.LaunchedAtStartup && AppSettings.TrayEnabled)
+            {
+                try { MainAppWindow.AppWindow.Hide(); } catch { }
+            }
+
             // اعمال تم و تنظیمات ذخیره‌شده
             ThemeManager.Apply(MainAppWindow);
             ThemeManager.ApplyAlwaysOnTop(MainAppWindow);
             L10n.ApplyDirection(MainAppWindow);
             AppSettings.LanguageChanged += () => L10n.ApplyDirection();
+
+            // ساخت شمارنده‌های سیستم از همین ابتدا در پس‌زمینه — تا هیچ صفحه‌ای مجبور
+            // نشود آن‌ها را روی ترد UI بسازد (دلیل فریز شدن پنجره هنگام باز شدن)
+            _ = Monitoring.MonitorWarmup.StartAsync();
 
             // نمونه‌برداری سراسری تاریخچه (گراف ۱۰ دقیقه/۱ ساعت + آلارم مصرف + mini-گراف Tray)
             Monitoring.HistoryStore.Start(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());

@@ -132,8 +132,44 @@
 
                     <Border x:Name="SecondCard" Style="{StaticResource CardBorderStyle}" Visibility="Collapsed">
                         <StackPanel Spacing="8">
-                            <TextBlock x:Name="SecondGraphLabel" Opacity="0.7" />
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="SecondGraphLabel" Opacity="0.7" VerticalAlignment="Center" />
+                                <!-- گراف دوم (آپلود) تاریخچه‌ی مستقل خودش را دارد -->
+                                <ComboBox x:Name="SecondHistCombo" Grid.Column="1" Width="170"
+                                          Visibility="Collapsed"
+                                          SelectionChanged="SecondHist_Changed">
+                                    <ComboBoxItem Content="Live" />
+                                    <ComboBoxItem Content="Last 10 minutes" />
+                                    <ComboBoxItem Content="Last hour" />
+                                </ComboBox>
+                            </Grid>
                             <controls:LiveGraph x:Name="SecondGraph" Height="140" />
+                            <!-- اسکرول به عقب در تاریخچه‌ی گراف دوم (آپلود) -->
+                            <Grid x:Name="SecondHistRow" Visibility="Collapsed" ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="SecondHistSlider" Minimum="0" Maximum="100" Value="100"
+                                        ValueChanged="SecondHistSlider_Changed" />
+                                <TextBlock x:Name="SecondHistLabel" Grid.Column="1" Opacity="0.7"
+                                           VerticalAlignment="Center" FontSize="12" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- پرمصرف‌ترین پردازه‌های گراف دوم (آپلود) -->
+                    <Border x:Name="SecondTopCard" Style="{StaticResource CardBorderStyle}" Visibility="Collapsed">
+                        <StackPanel Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE898;" FontSize="14" Opacity="0.7" />
+                                <TextBlock x:Name="SecondTopTitle" Text="Top processes — Upload" Opacity="0.7" />
+                            </StackPanel>
+                            <StackPanel x:Name="SecondTopPanel" Spacing="4" />
                         </StackPanel>
                     </Border>
 

@@ -19,6 +19,21 @@ namespace TaskManagerPro.Helpers
 
         private static readonly Dictionary<string, string> Fa = new()
         {
+            // استارتاپ و گراف‌ها (نسخه‌ی ۱.۹)
+            ["Start Pulse automatically when Windows starts"] = "اجرای خودکار Pulse هنگام روشن شدن ویندوز",
+            ["When the system tray is enabled, Pulse starts silently in the tray."] =
+                "اگر System Tray روشن باشد، Pulse بی‌سروصدا داخل Tray بالا می‌آید.",
+            ["Windows has blocked this app from starting automatically. Turn \"Pulse\" back on in Windows Settings › Apps › Startup (or in Task Manager › Startup apps)."] =
+                "ویندوز اجرای خودکار این برنامه را مسدود کرده است. آن را از Settings › Apps › Startup ویندوز (یا Task Manager › Startup apps) دوباره روشن کنید.",
+            ["Your system policy does not allow apps to start automatically."] =
+                "سیاست سیستم شما اجازه‌ی اجرای خودکار برنامه‌ها را نمی‌دهد.",
+            ["Windows did not allow enabling automatic startup."] =
+                "ویندوز اجازه‌ی روشن کردن اجرای خودکار را نداد.",
+            ["Startup folder"] = "پوشه‌ی Startup",
+            ["Startup folder (all users)"] = "پوشه‌ی Startup (همه‌ی کاربران)",
+            ["Last {0} s"] = "{0} ثانیه‌ی اخیر",
+            ["Reading system counters..."] = "در حال خواندن شمارنده‌های سیستم...",
+
             // ناوبری
             ["Overview"] = "نمای کلی",
             ["Performance"] = "عملکرد",

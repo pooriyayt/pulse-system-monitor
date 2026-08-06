@@ -13,7 +13,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>TaskManagerPro</AssemblyName>
-    <Version>1.6.0</Version>
+    <!-- Main دستی در Program.cs — برای محافظت از اجرای چندباره (single instance) -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <Version>1.9.0</Version>
+    <AppxGenerateAppxSymbolsPackage>false</AppxGenerateAppxSymbolsPackage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,7 +31,7 @@
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
     <!-- برای استخراج آیکون برنامه‌ها و ساخت آیکون زنده‌ی Tray -->
     <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
-    <!-- برای خواندن مصرف شبکه هر پراسس از طریق ETW (فقط با Run as administrator فعال می‌شود) -->
+    <!-- برای خواندن مصرف شبکهی هر پردازه از طریق ETW (فقط با Run as administrator فعال می‌شود) -->
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.16" />
     <!-- سنسورهای کامل سخت‌افزار: دما / فن / ولتاژ / توان (لوکال و آفلاین) -->
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.4" />

@@ -37,15 +37,15 @@
 
             <StackPanel Spacing="2">
                 <TextBlock x:Name="CpuLabel" Text="CPU" FontSize="11" Opacity="0.8" />
-                <controls:LiveGraph x:Name="CpuGraph" Height="52" />
+                <controls:LiveGraph x:Name="CpuGraph" Height="52" ShowAxis="False" />
             </StackPanel>
             <StackPanel Grid.Column="1" Spacing="2">
                 <TextBlock x:Name="RamLabel" Text="RAM" FontSize="11" Opacity="0.8" />
-                <controls:LiveGraph x:Name="RamGraph" Height="52" />
+                <controls:LiveGraph x:Name="RamGraph" Height="52" ShowAxis="False" />
             </StackPanel>
             <StackPanel Grid.Column="2" Spacing="2">
                 <TextBlock x:Name="GpuLabel" Text="GPU" FontSize="11" Opacity="0.8" />
-                <controls:LiveGraph x:Name="GpuGraph" Height="52" />
+                <controls:LiveGraph x:Name="GpuGraph" Height="52" ShowAxis="False" />
             </StackPanel>
         </Grid>
     </Grid>

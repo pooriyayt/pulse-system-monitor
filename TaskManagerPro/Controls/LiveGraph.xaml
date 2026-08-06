@@ -15,10 +15,40 @@
                 CornerRadius="8"
                 Background="{ThemeResource SubtleFillColorTransparentBrush}" />
 
+        <!-- خطوط راهنمای افقی (۲۵٪ / ۵۰٪ / ۷۵٪ محور عمودی) -->
+        <Grid x:Name="GridLines" IsHitTestVisible="False" Opacity="0.35">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Rectangle Grid.Row="1" Height="1" VerticalAlignment="Top"
+                       Fill="{ThemeResource ControlStrokeColorDefaultBrush}" />
+            <Rectangle Grid.Row="2" Height="1" VerticalAlignment="Top"
+                       Fill="{ThemeResource ControlStrokeColorDefaultBrush}" />
+            <Rectangle Grid.Row="3" Height="1" VerticalAlignment="Top"
+                       Fill="{ThemeResource ControlStrokeColorDefaultBrush}" />
+        </Grid>
+
         <!-- ناحیه‌ی پرشده‌ی زیر خط -->
-        <Polygon x:Name="FillArea" Opacity="0.2" />
+        <Path x:Name="FillArea" Opacity="0.2" />
 
         <!-- خط اصلی گراف -->
-        <Polyline x:Name="Line" StrokeThickness="2" StrokeLineJoin="Round" />
+        <Path x:Name="Line" StrokeThickness="2" StrokeLineJoin="Round" />
+
+        <!-- اعداد محور: سقف، وسط، کف + مقدار فعلی و بازه‌ی زمانی -->
+        <Grid x:Name="AxisLayer" IsHitTestVisible="False" Margin="8,3,8,3">
+            <TextBlock x:Name="MaxLabel" FontSize="10" Opacity="0.65"
+                       HorizontalAlignment="Left" VerticalAlignment="Top" />
+            <TextBlock x:Name="MidLabel" FontSize="10" Opacity="0.5"
+                       HorizontalAlignment="Left" VerticalAlignment="Center" />
+            <TextBlock x:Name="MinLabel" FontSize="10" Opacity="0.65"
+                       HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+            <TextBlock x:Name="CurrentLabel" FontSize="12" FontWeight="SemiBold" Opacity="0.9"
+                       HorizontalAlignment="Right" VerticalAlignment="Top" />
+            <TextBlock x:Name="SpanLabel" FontSize="10" Opacity="0.55"
+                       HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+        </Grid>
     </Grid>
 </UserControl>

@@ -102,7 +102,7 @@ namespace TaskManagerPro.Views
             catch { }
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             _initializing = true;
 
@@ -141,6 +141,9 @@ namespace TaskManagerPro.Views
             HighlightSwatch(TrayColorPanel, AppSettings.TrayColor);
             BuildPerIconPanel();
             ApplyL10n();
+
+            // وضعیت واقعی اجرای خودکار را از ویندوز بپرس (نه از تنظیمات محلی)
+            StartupToggle.IsOn = await StartupManager.IsEnabledAsync();
 
             _initializing = false;
         }
@@ -191,6 +194,28 @@ namespace TaskManagerPro.Views
             if (_initializing) return;
             AppSettings.AlwaysOnTop = TopToggle.IsOn;
             if (App.MainAppWindow != null) ThemeManager.ApplyAlwaysOnTop(App.MainAppWindow);
+        }
+
+        // ---- اجرای خودکار هنگام بوت ویندوز ----
+
+        private async void Startup_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_initializing) return;
+
+            var (ok, message) = await StartupManager.SetEnabledAsync(StartupToggle.IsOn);
+            if (ok)
+            {
+                StartupBar.IsOpen = false;
+                return;
+            }
+
+            // اگر ویندوز اجازه نداد، کلید را به وضعیت واقعی برگردان
+            _initializing = true;
+            StartupToggle.IsOn = await StartupManager.IsEnabledAsync();
+            _initializing = false;
+
+            StartupBar.Message = message;
+            StartupBar.IsOpen = message.Length > 0;
         }
 
         // ---- System Tray ----
@@ -455,6 +480,7 @@ namespace TaskManagerPro.Views
             AlarmToggle.Header = L10n.T("Windows notification when CPU / RAM / temperature exceeds a limit");
             WidgetToggle.Header = L10n.T("Small always-on-top window with live CPU / RAM / GPU graphs");
             TopToggle.Header = L10n.T("Always on top (keep this window above all others)");
+            StartupToggle.Header = L10n.T("Start Pulse automatically when Windows starts");
             TrayToggle.Header = L10n.T("Live usage icon in the system tray — closing or minimizing hides the app to the tray");
             PerIconHeader.Text = L10n.T("Per-icon customization — override color, style and size for each tray icon");
             HotkeyToggle.Header = L10n.T("Global hotkey Ctrl + Alt + T to show / hide the window");

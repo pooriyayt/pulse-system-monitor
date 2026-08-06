@@ -175,7 +175,7 @@ namespace TaskManagerPro.Helpers
                 {
                     double mbs = val / 1024.0;
                     text = mbs >= 10 ? mbs.ToString("F0") : mbs.ToString("F1");
-                    sub = m == 4 ? "\u2193" : "\u2191"; // فلش دانلود / آپلود
+                    sub = m == 4 ? "down" : "up"; // فلش دانلود / آپلود
                 }
                 else
                 {
@@ -232,11 +232,13 @@ namespace TaskManagerPro.Helpers
 
             if (!string.IsNullOrEmpty(sub))
             {
-                // حالت سرعت شبکه: فلش کوچک بالا + عدد MB/s پایین
-                using var subFont = new Font("Segoe UI", 8.5f * scale, FontStyle.Bold, GraphicsUnit.Pixel);
-                using var mainFont = new Font("Segoe UI", 14f * scale, FontStyle.Bold, GraphicsUnit.Pixel);
-                g.DrawString(sub, subFont, textBrush, new RectangleF(0, 1, 32, 11), format);
-                g.DrawString(text, mainFont, textBrush, new RectangleF(0, 10, 32, 22), format);
+                // حالت سرعت شبکه: فلش توپر و بزرگ بالا + عدد MB/s پایین.
+                // فلش به‌جای کاراکتر یونیکد (که خیلی نازک بود) به‌صورت شکل توپر کشیده می‌شود
+                // تا در تسک‌بار واقعاً دیده شود.
+                DrawArrow(g, textBrush, sub == "down", 32f, 13f * Math.Clamp(scale, 0.75f, 1.5f));
+
+                using var mainFont = new Font("Segoe UI", 16f * scale, FontStyle.Bold, GraphicsUnit.Pixel);
+                g.DrawString(text, mainFont, textBrush, new RectangleF(0, 12, 32, 20), format);
             }
             else
             {
@@ -246,6 +248,48 @@ namespace TaskManagerPro.Helpers
             }
 
             return bmp.GetHicon();
+        }
+
+        /// <summary>
+        /// فلش توپر دانلود/آپلود در نوار بالای آیکون Tray.
+        /// عرض میله و اندازه‌ی سر فلش به‌اندازه‌ای است که در تسک‌بار ۱۶ پیکسلی هم واضح بماند.
+        /// </summary>
+        private static void DrawArrow(Graphics g, Brush brush, bool down, float iconSize, float arrowSize)
+        {
+            float w = arrowSize;              // پهنای کل فلش
+            float h = arrowSize * 0.92f;      // ارتفاع کل فلش
+            float cx = iconSize / 2f;
+            float top = 0.5f;
+
+            float headH = h * 0.55f;          // ارتفاع سر مثلثی
+            float stemW = Math.Max(3f, w * 0.34f); // پهنای میله (کلفت تا دیده شود)
+
+            using var path = new GraphicsPath();
+
+            if (down)
+            {
+                // میله بالا، سر مثلثی پایین
+                path.AddRectangle(new RectangleF(cx - stemW / 2f, top, stemW, h - headH));
+                path.AddPolygon(new[]
+                {
+                    new PointF(cx - w / 2f, top + h - headH),
+                    new PointF(cx + w / 2f, top + h - headH),
+                    new PointF(cx, top + h),
+                });
+            }
+            else
+            {
+                // سر مثلثی بالا، میله پایین
+                path.AddPolygon(new[]
+                {
+                    new PointF(cx, top),
+                    new PointF(cx + w / 2f, top + headH),
+                    new PointF(cx - w / 2f, top + headH),
+                });
+                path.AddRectangle(new RectangleF(cx - stemW / 2f, top + headH, stemW, h - headH));
+            }
+
+            g.FillPath(brush, path);
         }
 
         /// <summary>آیکون 32×32 با mini-گراف زنده به‌جای عدد (استایل 2)</summary>

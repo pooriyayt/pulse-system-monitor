@@ -15,6 +15,7 @@ namespace TaskManagerPro.Views
     {
         private DispatcherTimer? _timer;
         private bool _busy;
+        private bool _firstSnapshotShown;
         private readonly List<ProgressBar> _coreBars = new();
         private readonly List<TextBlock> _coreLabels = new();
 
@@ -36,12 +37,27 @@ namespace TaskManagerPro.Views
             NetDownLabel.Text = L10n.T("Download");
             NetUpLabel.Text = L10n.T("Upload");
             HardwareHeader.Text = L10n.T("Hardware");
+            LoadingText.Text = L10n.T("Reading system counters...");
+        }
+
+        /// <summary>لودینگ اولیه: محتوا محو، حلقه‌ی چرخان وسط صفحه</summary>
+        private void ShowLoading(bool show)
+        {
+            LoadingPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            ContentScroller.Opacity = show ? 0.25 : 1.0;
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             AppSettings.LanguageChanged += ApplyL10n;
             ApplyL10n();
+
+            // تا رسیدن اولین داده، لودینگ نشان بده (پنجره از همان اول باز و قابل استفاده است)
+            if (!_firstSnapshotShown) ShowLoading(true);
+
+            // ساخت شمارنده‌ها چند ثانیه طول می‌کشد — کاملاً در پس‌زمینه
+            await Monitoring.MonitorWarmup.StartAsync();
+
             // مشخصات سخت‌افزار را در پس‌زمینه بخوان تا UI قفل نشود
             CpuModelText.Text = await Task.Run(HardwareInfo.GetCpuName);
             GpuModelText.Text = await Task.Run(HardwareInfo.GetGpuName);
@@ -80,8 +96,10 @@ namespace TaskManagerPro.Views
             _busy = true;
             try
             {
-                // خواندن شمارنده‌ها در Thread جدا تا UI روان بماند
-                var s = await Task.Run(SystemMonitor.Instance.Read);
+                // خواندن شمارنده‌ها در Thread جدا تا UI روان بماند.
+                // نکته: حتماً به شکل lambda — با Task.Run(SystemMonitor.Instance.Read)
+                // خودِ Instance روی ترد UI ساخته می‌شد و پنجره فریز می‌کرد.
+                var s = await Task.Run(() => SystemMonitor.Instance.Read());
                 UpdateUi(s);
             }
             catch
@@ -91,6 +109,13 @@ namespace TaskManagerPro.Views
             finally
             {
                 _busy = false;
+
+                // بعد از اولین تلاش (حتی اگر بعضی شمارنده‌ها خطا دادند) لودینگ برداشته می‌شود
+                if (!_firstSnapshotShown)
+                {
+                    _firstSnapshotShown = true;
+                    ShowLoading(false);
+                }
             }
         }
 
