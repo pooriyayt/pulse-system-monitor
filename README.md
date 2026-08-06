@@ -6,8 +6,8 @@
 
 [⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-1.9-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
-*Open source — read the code, audit it, build it yourself.*
-
+*Open source — read the code, audit it, build it yourself.*<br><br>
+ <img src="https://img.shields.io/github/downloads/pooriyayt/pulse-system-monitor/total.svg" alt="total" > <img src="https://img.shields.io/badge/antivirus-PASS-green" alt="antivirus" >
 </div>
 
 ---
