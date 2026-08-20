@@ -47,6 +47,28 @@ namespace TaskManagerPro.Monitoring
             return names.Count > 0 ? string.Join("  |  ", names) : "GPU";
         }
 
+        /// <summary>مدل هر دیسک فیزیکی بر اساس شماره‌ی آن (مثل شماره‌ی شمارنده‌های PhysicalDisk)</summary>
+        public static Dictionary<int, string> GetDiskModels()
+        {
+            var map = new Dictionary<int, string>();
+            try
+            {
+                using var searcher = new ManagementObjectSearcher("SELECT Index, Model FROM Win32_DiskDrive");
+                foreach (ManagementObject o in searcher.Get())
+                {
+                    try
+                    {
+                        int idx = Convert.ToInt32(o["Index"]);
+                        var model = o["Model"]?.ToString()?.Trim();
+                        if (!string.IsNullOrEmpty(model)) map[idx] = model;
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+            return map;
+        }
+
         /// <summary>فرکانس پایه‌ی CPU به مگاهرتز (برای محاسبه‌ی سرعت لحظه‌ای)</summary>
         public static double GetCpuBaseMHz()
         {

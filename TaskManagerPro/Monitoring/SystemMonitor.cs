@@ -19,6 +19,22 @@ namespace TaskManagerPro.Monitoring
         public Dictionary<string, double> Engines = new();
     }
 
+    /// <summary>وضعیت یک دیسک فیزیکی (هر دیسک جدا — مثل Task Manager ویندوز)</summary>
+    public class DiskStat
+    {
+        /// <summary>شماره‌ی دیسک فیزیکی (همان عددی که ویندوز می‌دهد: 0، 1، ...)</summary>
+        public int Index;
+        /// <summary>نام شمارنده (مثلاً "0 C:")</summary>
+        public string Instance = "";
+        /// <summary>حرف‌های درایو این دیسک (مثلاً "C: D:")</summary>
+        public string Letters = "";
+        /// <summary>مدل دیسک از WMI (اگر پیدا شود)</summary>
+        public string Model = "";
+        public double ActivePercent;
+        public double ReadMBs;
+        public double WriteMBs;
+    }
+
     /// <summary>یک عکس لحظه‌ای از وضعیت سیستم در یک لحظه‌ی مشخص</summary>
     public class SystemSnapshot
     {
@@ -40,6 +56,9 @@ namespace TaskManagerPro.Monitoring
         public double DiskPercent;
         public double DiskReadMBs;
         public double DiskWriteMBs;
+
+        /// <summary>هر دیسک فیزیکی جدا (خالی یعنی شمارنده‌های PhysicalDisk در دسترس نبودند)</summary>
+        public List<DiskStat> Disks = new();
 
         public double NetRecvKBs;
         public double NetSentKBs;
@@ -75,6 +94,16 @@ namespace TaskManagerPro.Monitoring
             public int Pid = -1;
         }
 
+        private sealed class DiskCounter
+        {
+            public int Index;
+            public string Instance = "";
+            public string Letters = "";
+            public PerformanceCounter Time = null!;
+            public PerformanceCounter Read = null!;
+            public PerformanceCounter Write = null!;
+        }
+
         private PerformanceCounter? _cpuTotal;
         private readonly List<PerformanceCounter> _cpuCores = new();
         private PerformanceCounter? _cpuPerf;
@@ -82,6 +111,7 @@ namespace TaskManagerPro.Monitoring
         private PerformanceCounter? _diskTime;
         private PerformanceCounter? _diskRead;
         private PerformanceCounter? _diskWrite;
+        private readonly List<DiskCounter> _disks = new();
         private readonly List<PerformanceCounter> _netRecv = new();
         private readonly List<PerformanceCounter> _netSent = new();
         private readonly List<GpuCounter> _gpuEngines = new();
@@ -93,6 +123,7 @@ namespace TaskManagerPro.Monitoring
 
         private List<string> _gpuNames = new();
         private double _cpuBaseMhz = -1;
+        private Dictionary<int, string> _diskModels = new();
         private int _reads;
         private double _lastWmiTemp = -1;
 
@@ -127,6 +158,35 @@ namespace TaskManagerPro.Monitoring
                 _diskWrite = new PerformanceCounter("PhysicalDisk", "Disk Write Bytes/sec", "_Total", true);
             }
             catch { }
+
+            // هر دیسک فیزیکی یک شمارنده‌ی جدا دارد (نام نمونه مثل "0 C:" یا "1 D: E:")
+            try
+            {
+                var diskCat = new PerformanceCounterCategory("PhysicalDisk");
+                foreach (var inst in diskCat.GetInstanceNames())
+                {
+                    if (inst.Equals("_Total", StringComparison.OrdinalIgnoreCase)) continue;
+                    int idx = ParseDiskIndex(inst);
+                    if (idx < 0) continue;
+                    try
+                    {
+                        _disks.Add(new DiskCounter
+                        {
+                            Index = idx,
+                            Instance = inst,
+                            Letters = ParseDiskLetters(inst),
+                            Time = new PerformanceCounter("PhysicalDisk", "% Disk Time", inst, true),
+                            Read = new PerformanceCounter("PhysicalDisk", "Disk Read Bytes/sec", inst, true),
+                            Write = new PerformanceCounter("PhysicalDisk", "Disk Write Bytes/sec", inst, true),
+                        });
+                    }
+                    catch { }
+                }
+                _disks.Sort((a, b) => a.Index.CompareTo(b.Index));
+            }
+            catch { }
+
+            try { _diskModels = HardwareInfo.GetDiskModels(); } catch { }
 
             try
             {
@@ -268,6 +328,21 @@ namespace TaskManagerPro.Monitoring
             return int.TryParse(instance.Substring(start, end - start), out var n) ? n : -1;
         }
 
+        /// <summary>شماره‌ی دیسک از نام شمارنده (مثلاً "0 C:" ← 0)</summary>
+        private static int ParseDiskIndex(string instance)
+        {
+            int end = 0;
+            while (end < instance.Length && char.IsDigit(instance[end])) end++;
+            return end > 0 && int.TryParse(instance.Substring(0, end), out var n) ? n : -1;
+        }
+
+        /// <summary>حرف‌های درایو از نام شمارنده (مثلاً "1 D: E:" ← "D: E:")</summary>
+        private static string ParseDiskLetters(string instance)
+        {
+            int i = instance.IndexOf(' ');
+            return i >= 0 ? instance.Substring(i + 1).Trim() : "";
+        }
+
         public SystemSnapshot Read()
         {
             // چند صفحه ممکن است همزمان بخوانند؛ با قفل از تداخل جلوگیری می‌کنیم
@@ -313,6 +388,25 @@ namespace TaskManagerPro.Monitoring
                 s.DiskWriteMBs = (_diskWrite?.NextValue() ?? 0) / (1024.0 * 1024.0);
             }
             catch { }
+
+            // هر دیسک فیزیکی جدا
+            foreach (var d in _disks)
+            {
+                try
+                {
+                    s.Disks.Add(new DiskStat
+                    {
+                        Index = d.Index,
+                        Instance = d.Instance,
+                        Letters = d.Letters,
+                        Model = _diskModels.GetValueOrDefault(d.Index, ""),
+                        ActivePercent = Math.Min(d.Time.NextValue(), 100),
+                        ReadMBs = d.Read.NextValue() / (1024.0 * 1024.0),
+                        WriteMBs = d.Write.NextValue() / (1024.0 * 1024.0),
+                    });
+                }
+                catch { }
+            }
 
             try
             {
@@ -475,6 +569,7 @@ namespace TaskManagerPro.Monitoring
             _diskTime?.Dispose();
             _diskRead?.Dispose();
             _diskWrite?.Dispose();
+            foreach (var d in _disks) { d.Time.Dispose(); d.Read.Dispose(); d.Write.Dispose(); }
             foreach (var c in _netRecv) c.Dispose();
             foreach (var c in _netSent) c.Dispose();
             foreach (var g in _gpuEngines) g.Counter.Dispose();

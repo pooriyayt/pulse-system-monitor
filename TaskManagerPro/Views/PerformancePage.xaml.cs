@@ -29,6 +29,8 @@ namespace TaskManagerPro.Views
         private readonly List<TextBlock> _statLabels = new();
         private string _cpuName = "";
         private List<string> _gpuNames = new();
+        /// <summary>توضیح ثابت هر دیسک (حرف درایو + مدل) — زیرنویس سایدبار زنده است و عوض می‌شود</summary>
+        private readonly Dictionary<int, string> _diskCaptions = new();
 
         // گراف تاریخچه‌دار: 0 = زنده، 1 = ۱۰ دقیقه، 2 = ۱ ساعت
         private int _histMode;
@@ -65,12 +67,14 @@ namespace TaskManagerPro.Views
                 {
                     "cpu" => "CPU",
                     "memory" => L10n.T("Memory"),
-                    "disk" => L10n.T("Disk"),
                     "network" => L10n.T("Network"),
                     "sensors" => L10n.T("Sensors"),
                     _ when item.Key.StartsWith("gpu") => Items.Count(i => i.Key.StartsWith("gpu")) > 1
                         ? $"GPU {item.Key.Replace("gpu", "")}"
                         : "GPU",
+                    _ when item.Key.StartsWith("disk") => Items.Count(i => i.Key.StartsWith("disk")) > 1
+                        ? $"{L10n.T("Disk")} {item.Key.Replace("disk", "")}"
+                        : L10n.T("Disk"),
                     _ => item.Title,
                 };
                 if (item.Key == "sensors")
@@ -114,7 +118,22 @@ namespace TaskManagerPro.Views
                     });
                 }
 
-                Items.Add(new PerfSidebarItem { Key = "disk", Glyph = "\uEDA2", Title = L10n.T("Disk") });
+                // یک آیتم برای هر دیسک فیزیکی (مثل Task Manager ویندوز)
+                var diskIndexes = first.Disks.Select(d => d.Index).Distinct().OrderBy(i => i).ToList();
+                if (diskIndexes.Count == 0) diskIndexes.Add(0);
+
+                foreach (var di in diskIndexes)
+                {
+                    var d = first.Disks.FirstOrDefault(x => x.Index == di);
+                    if (d != null) _diskCaptions[di] = DiskCaption(d);
+                    Items.Add(new PerfSidebarItem
+                    {
+                        Key = $"disk{di}",
+                        Glyph = "\uEDA2",
+                        Title = diskIndexes.Count > 1 ? $"{L10n.T("Disk")} {di}" : L10n.T("Disk"),
+                        Subtitle = d != null ? DiskCaption(d) : "",
+                    });
+                }
                 Items.Add(new PerfSidebarItem { Key = "network", Glyph = "\uE839", Title = L10n.T("Network") });
                 Items.Add(new PerfSidebarItem
                 {
@@ -243,6 +262,7 @@ namespace TaskManagerPro.Views
                     break;
 
                 case "disk":
+                    DetailSubtitle.Text = _diskCaptions.GetValueOrDefault(DiskIndex(item.Key), "");
                     MainGraph.AutoScale = false;
                     MainGraph.MaxValue = 100;
                     MainGraphLabel.Text = L10n.T("Active time (%)");
@@ -250,6 +270,8 @@ namespace TaskManagerPro.Views
                     SecondGraph.AutoScale = true;
                     SecondGraph.Unit = TaskManagerPro.Controls.GraphUnit.MegaBytesPerSec;
                     SecondGraphLabel.Text = L10n.T("Transfer rate — Read + Write (MB/s)");
+                    // گراف انتقال هم مثل گراف بالا تاریخچه‌ی مستقل دارد
+                    SecondHistCombo.Visibility = Visibility.Visible;
                     break;
 
                 case "network":
@@ -267,10 +289,29 @@ namespace TaskManagerPro.Views
             }
         }
 
-        private static string KeyKind(string key) => key.StartsWith("gpu") ? "gpu" : key;
+        private static string KeyKind(string key) =>
+            key.StartsWith("gpu") ? "gpu" : key.StartsWith("disk") ? "disk" : key;
 
         private static int GpuIndex(string key) =>
             int.TryParse(key.Substring(3), out var i) ? i : 0;
+
+        private static int DiskIndex(string key) =>
+            key.Length > 4 && int.TryParse(key.Substring(4), out var i) ? i : 0;
+
+        /// <summary>توضیح کوتاه یک دیسک: حرف‌های درایو + مدل</summary>
+        private static string DiskCaption(DiskStat d)
+        {
+            if (d.Letters.Length > 0 && d.Model.Length > 0) return $"{d.Letters}  •  {d.Model}";
+            if (d.Model.Length > 0) return d.Model;
+            return d.Letters;
+        }
+
+        private static DiskStat? FindDisk(SystemSnapshot s, int index)
+        {
+            var d = s.Disks.FirstOrDefault(x => x.Index == index);
+            if (d == null && index < s.Disks.Count) d = s.Disks[index];
+            return d;
+        }
 
         private async void Timer_Tick(object? sender, object e)
         {
@@ -353,8 +394,19 @@ namespace TaskManagerPro.Views
                             : L10n.T("Not available");
                         break;
                     case "disk":
-                        item.Subtitle = $"{s.DiskPercent:F0}%  •  {L10n.T("Read")} {s.DiskReadMBs:F1} / {L10n.T("Write")} {s.DiskWriteMBs:F1} MB/s";
+                    {
+                        int dIdx = DiskIndex(item.Key);
+                        var d = FindDisk(s, dIdx);
+                        if (d != null && !_diskCaptions.ContainsKey(dIdx))
+                        {
+                            _diskCaptions[dIdx] = DiskCaption(d);
+                            if (_selectedKey == item.Key) DetailSubtitle.Text = _diskCaptions[dIdx];
+                        }
+                        item.Subtitle = d != null
+                            ? $"{d.ActivePercent:F0}%  •  {L10n.T("Read")} {d.ReadMBs:F1} / {L10n.T("Write")} {d.WriteMBs:F1} MB/s"
+                            : $"{s.DiskPercent:F0}%  •  {L10n.T("Read")} {s.DiskReadMBs:F1} / {L10n.T("Write")} {s.DiskWriteMBs:F1} MB/s";
                         break;
+                    }
                     case "network":
                         item.Subtitle = $"↓ {FormatSpeed(s.NetRecvKBs)}   ↑ {FormatSpeed(s.NetSentKBs)}";
                         break;
@@ -403,13 +455,20 @@ namespace TaskManagerPro.Views
                 }
 
                 case "disk":
-                    MainGraph.AddValue(s.DiskPercent);
-                    SecondGraph.AddValue(s.DiskReadMBs + s.DiskWriteMBs);
+                {
+                    var d = FindDisk(s, DiskIndex(_selectedKey));
+                    double active = d?.ActivePercent ?? s.DiskPercent;
+                    double read = d?.ReadMBs ?? s.DiskReadMBs;
+                    double write = d?.WriteMBs ?? s.DiskWriteMBs;
+
+                    MainGraph.AddValue(active);
+                    SecondGraph.AddValue(read + write);
                     SetStats(
-                        ("Active time", $"{s.DiskPercent:F0}%"),
-                        ("Read speed", $"{s.DiskReadMBs:F1} MB/s"),
-                        ("Write speed", $"{s.DiskWriteMBs:F1} MB/s"));
+                        ("Active time", $"{active:F0}%"),
+                        ("Read speed", $"{read:F1} MB/s"),
+                        ("Write speed", $"{write:F1} MB/s"));
                     break;
+                }
 
                 case "network":
                     MainGraph.AddValue(s.NetRecvKBs);
@@ -697,14 +756,22 @@ namespace TaskManagerPro.Views
         {
             "memory" => "mem",
             "gpu" => "gpu",
-            "disk" => "disk",
+            "disk" => Monitoring.HistoryStore.HasDisk(DiskIndex(_selectedKey))
+                ? Monitoring.HistoryStore.DiskKey(DiskIndex(_selectedKey))
+                : "disk",
             "network" => "netdown",
             _ => "cpu",
         };
 
         /// <summary>کلید HistoryStore برای گراف دوم ("" یعنی تاریخچه ندارد)</summary>
-        private string SecondHistKey() =>
-            KeyKind(_selectedKey) == "network" ? "netup" : "";
+        private string SecondHistKey() => KeyKind(_selectedKey) switch
+        {
+            "network" => "netup",
+            "disk" => Monitoring.HistoryStore.HasDisk(DiskIndex(_selectedKey))
+                ? Monitoring.HistoryStore.DiskIoKey(DiskIndex(_selectedKey))
+                : "diskio",
+            _ => "",
+        };
 
         private void Hist_Changed(object sender, SelectionChangedEventArgs e)
         {

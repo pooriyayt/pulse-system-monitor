@@ -1,9 +1,10 @@
-<Page
+﻿<Page
     x:Class="TaskManagerPro.Views.ServicesPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:TaskManagerPro.Models"
-    NavigationCacheMode="Required">
+    NavigationCacheMode="Required"
+    KeyboardAcceleratorPlacementMode="Hidden">
 
     <!-- هات‌کی‌های این صفحه -->
     <Page.KeyboardAccelerators>

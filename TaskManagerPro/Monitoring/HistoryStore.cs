@@ -31,10 +31,34 @@ namespace TaskManagerPro.Monitoring
         /// <summary>ثانیه‌ی (epoch) قدیمی‌ترین نمونه‌ای که تا حالا ثبت شده</summary>
         private static long _firstEpoch;
 
-        private static readonly string[] Keys = { "cpu", "mem", "gpu", "disk", "netdown", "netup" };
+        /// <summary>بیشترین تعداد دیسکی که تاریخچه‌اش نگه داشته می‌شود</summary>
+        public const int MaxDisks = 8;
+
+        /// <summary>کلید تاریخچه‌ی «درصد فعالیت» یک دیسک فیزیکی</summary>
+        public static string DiskKey(int index) => $"disk{index}";
+
+        /// <summary>کلید تاریخچه‌ی «سرعت انتقال (خواندن+نوشتن)» یک دیسک فیزیکی</summary>
+        public static string DiskIoKey(int index) => $"diskio{index}";
+
+        /// <summary>آیا برای این دیسک تاریخچه نگه می‌داریم؟</summary>
+        public static bool HasDisk(int index) => index >= 0 && index < MaxDisks;
+
+        private static readonly string[] Keys = BuildKeys();
+
+        private static string[] BuildKeys()
+        {
+            var list = new List<string> { "cpu", "mem", "gpu", "disk", "diskio", "netdown", "netup" };
+            for (int i = 0; i < MaxDisks; i++)
+            {
+                list.Add($"disk{i}");
+                list.Add($"diskio{i}");
+            }
+            return list.ToArray();
+        }
 
         private const int FileMagic = 0x504C5348; // "PLSH"
-        private const int FileVersion = 1;
+        // نسخه‌ی ۲: کلیدهای هر دیسک جدا اضافه شد (فایل نسخه‌ی ۱ نادیده گرفته می‌شود)
+        private const int FileVersion = 2;
         private static DateTime _lastSave = DateTime.MinValue;
 
         static HistoryStore()
@@ -93,8 +117,17 @@ namespace TaskManagerPro.Monitoring
                             Buffers["mem"][i] = s.MemPercent;
                             Buffers["gpu"][i] = Math.Max(s.GpuPercent, 0);
                             Buffers["disk"][i] = s.DiskPercent;
+                            Buffers["diskio"][i] = s.DiskReadMBs + s.DiskWriteMBs;
                             Buffers["netdown"][i] = s.NetRecvKBs;
                             Buffers["netup"][i] = s.NetSentKBs;
+
+                            // هر دیسک فیزیکی جدا
+                            foreach (var d in s.Disks)
+                            {
+                                if (!HasDisk(d.Index)) continue;
+                                Buffers[DiskKey(d.Index)][i] = d.ActivePercent;
+                                Buffers[DiskIoKey(d.Index)][i] = d.ReadMBs + d.WriteMBs;
+                            }
 
                             _lastEpoch = e;
                             if (_firstEpoch == 0) _firstEpoch = e;

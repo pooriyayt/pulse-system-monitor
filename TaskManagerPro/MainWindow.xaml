@@ -3,7 +3,10 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Grid>
+    <!-- KeyboardAcceleratorPlacementMode=Hidden: وگرنه ویندوز روی کل پنجره
+         (چون شورتکات‌ها روی همین Grid ریشه نشسته‌اند) تولتیپ «Ctrl+1» را
+         زیر ماوس نشان می‌دهد؛ شورتکات‌ها بدون تولتیپ هم کار می‌کنند. -->
+    <Grid KeyboardAcceleratorPlacementMode="Hidden">
         <!-- هات‌کی‌های داخل برنامه: Ctrl+1 تا Ctrl+5 برای جابه‌جایی بین تب‌ها -->
         <Grid.KeyboardAccelerators>
             <KeyboardAccelerator Key="Number1" Modifiers="Control" Invoked="Tab1_Invoked" />
