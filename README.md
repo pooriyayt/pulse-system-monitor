@@ -38,13 +38,13 @@
 
 ## 📥 Installation
 
-<!-- ### Option 1 — Winget (recommended)
+### Option 1 — Winget (recommended)
 
 ```powershell
 winget install wl-std.pulse
-``` -->
+``` 
 
-### Option 1 — Manual download
+### Option 2 — Manual download
 
 1. Download: **[Pulse-2.0-Setup.exe](https://dl1.wl-std.com/Pulse-2.0-Setup.exe)**
 2. Run it — it will ask for administrator access once (to trust the certificate and install)

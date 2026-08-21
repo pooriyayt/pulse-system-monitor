@@ -16,8 +16,8 @@ namespace TaskManagerPro.Helpers
     /// غیرفعال کردن «واقعاً» انجام می‌شود، نه فقط ظاهری:
     ///  - آیتم رجیستری: مقدار از کلید Run برداشته و در کلید پشتیبان برنامه نگه داشته می‌شود
     ///    (کلید StartupApproved هم مثل Task Manager ویندوز به‌روز می‌شود).
-    ///  - آیتم پوشه‌ای: فایل میانبر به زیرپوشه‌ی «Disabled by Pulse» منتقل می‌شود؛
-    ///    ویندوز محتویات زیرپوشه‌ها را موقع بوت اجرا نمی‌کند.
+    ///  - آیتم پوشه‌ای: فایل میانبر به پوشه‌ی %LOCALAPPDATA%\Pulse\DisabledStartup منتقل می‌شود
+    ///    (بیرون از Startup، تا اکسپلورر موقع بوت پنجره‌ای باز نکند).
     /// در هر دو حالت با روشن کردن دوباره‌ی کلید، آیتم دقیقاً سر جای اولش برمی‌گردد.
     /// </summary>
     public static class StartupScanner
@@ -30,7 +30,42 @@ namespace TaskManagerPro.Helpers
         /// <summary>کلید پشتیبان خود برنامه — آیتم‌های غیرفعال‌شده این‌جا نگه داشته می‌شوند</summary>
         private const string BackupKey = @"Software\Pulse\StartupBackup";
 
-        private const string DisabledFolderName = "Disabled by Pulse";
+        /// <summary>نام پوشه‌ی قدیمی (داخل خود Startup) — فقط برای مهاجرت نگه داشته شده است</summary>
+        private const string LegacyDisabledFolderName = "Disabled by Pulse";
+
+        /// <summary>
+        /// محل نگهداری میانبرهای غیرفعال‌شده. عمداً بیرون از پوشه‌ی Startup است؛
+        /// اکسپلورر زیرپوشه‌های Startup را موقع بوت باز می‌کند و پنجره‌ای جلوی کاربر می‌آید.
+        /// </summary>
+        private static string DisabledStore(bool isMachine) =>
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Pulse", "DisabledStartup", isMachine ? "Common" : "User");
+
+        /// <summary>انتقال میانبرهای غیرفعال از پوشه‌ی قدیمیِ داخل Startup به محل جدید و حذف آن پوشه</summary>
+        private static void MigrateLegacyDisabledFolder(bool isMachine)
+        {
+            try
+            {
+                string folder = StartupFolder(isMachine);
+                if (folder.Length == 0) return;
+
+                string legacyDir = Path.Combine(folder, LegacyDisabledFolderName);
+                if (!Directory.Exists(legacyDir)) return;
+
+                string store = DisabledStore(isMachine);
+                Directory.CreateDirectory(store);
+
+                foreach (var file in Directory.EnumerateFiles(legacyDir))
+                {
+                    try { File.Move(file, Path.Combine(store, Path.GetFileName(file)), overwrite: true); }
+                    catch { }
+                }
+
+                try { Directory.Delete(legacyDir, recursive: true); } catch { }
+            }
+            catch { }
+        }
 
         // ---------- خواندن ----------
 
@@ -149,6 +184,8 @@ namespace TaskManagerPro.Helpers
         {
             try
             {
+                MigrateLegacyDisabledFolder(isMachine);
+
                 string folder = StartupFolder(isMachine);
                 if (folder.Length == 0 || !Directory.Exists(folder)) return;
 
@@ -182,7 +219,7 @@ namespace TaskManagerPro.Helpers
                 }
 
                 // آیتم‌هایی که خودمان غیرفعال کرده‌ایم
-                string disabledDir = Path.Combine(folder, DisabledFolderName);
+                string disabledDir = DisabledStore(isMachine);
                 if (Directory.Exists(disabledDir))
                     foreach (var file in Directory.EnumerateFiles(disabledDir))
                         AddFile(file, enabled: false);
@@ -276,7 +313,7 @@ namespace TaskManagerPro.Helpers
         private static void SetFolderEnabled(StartupItem item, bool enable)
         {
             string folder = StartupFolder(item.IsMachine);
-            string disabledDir = Path.Combine(folder, DisabledFolderName);
+            string disabledDir = DisabledStore(item.IsMachine);
             string fileName = Path.GetFileName(item.FilePath);
             if (fileName.Length == 0) throw new InvalidOperationException("Startup shortcut not found");
 

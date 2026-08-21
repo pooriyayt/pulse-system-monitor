@@ -15,7 +15,7 @@
     <AssemblyName>TaskManagerPro</AssemblyName>
     <!-- Main دستی در Program.cs — برای محافظت از اجرای چندباره (single instance) -->
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <AppxGenerateAppxSymbolsPackage>false</AppxGenerateAppxSymbolsPackage>
   </PropertyGroup>
 
