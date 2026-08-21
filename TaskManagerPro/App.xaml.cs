@@ -103,8 +103,10 @@ namespace TaskManagerPro
 
         /// <summary>
         /// چک خودکار آپدیت هنگام باز شدن برنامه — بی‌صدا در پس‌زمینه.
-        /// اگر نسخه‌ی جدید بود دانلود می‌کند و از کاربر می‌خواهد نصب کند؛
-        /// هر خطایی (آفلاین، سرور خراب) بی‌سروصدا نادیده گرفته می‌شود.
+        /// هیچ فایلی بدون اجازه‌ی کاربر دانلود نمی‌شود: اگر نسخه‌ی جدیدی بود فقط یک
+        /// پنجره‌ی اطلاع‌رسانی نشان داده می‌شود و دانلود تنها با زدن دکمه‌ی «دانلود»
+        /// شروع می‌شود (با نمایش درصد پیشرفت). هر خطایی (آفلاین، سرور خراب) بی‌سروصدا
+        /// نادیده گرفته می‌شود.
         /// </summary>
         private static async System.Threading.Tasks.Task AutoCheckUpdatesAsync()
         {
@@ -116,35 +118,140 @@ namespace TaskManagerPro
                 var info = await UpdateChecker.CheckAsync();
                 if (info is not { UpdateAvailable: true }) return;
 
-                string? path = await UpdateChecker.DownloadAsync(info);
-                if (path == null) return;
-
                 MainAppWindow?.DispatcherQueue.TryEnqueue(async () =>
                 {
                     try
                     {
-                        if (MainAppWindow?.Content is not FrameworkElement root) return;
-                        var dlg = new Microsoft.UI.Xaml.Controls.ContentDialog
-                        {
-                            Title = L10n.T("Update ready"),
-                            Content = string.Format(
-                                L10n.T("Version {0} has been downloaded. Install it now to update Pulse."),
-                                info.LatestVersion),
-                            PrimaryButtonText = L10n.T("Install"),
-                            CloseButtonText = L10n.T("Later"),
-                            DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
-                            XamlRoot = root.XamlRoot,
-                        };
-                        if (await dlg.ShowAsync() == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
-                        {
-                            System.Diagnostics.Process.Start(
-                                new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
-                        }
+                        if (MainAppWindow?.Content is FrameworkElement root)
+                            await ShowUpdatePromptAsync(info, root);
                     }
                     catch { }
                 });
             }
             catch { }
+        }
+
+        /// <summary>
+        /// پنجره‌ی «نسخه‌ی جدید موجود است» — تا وقتی کاربر دکمه‌ی دانلود را نزند
+        /// هیچ چیزی دانلود نمی‌شود. بعد از زدن دکمه، نوار پیشرفت و درصد دانلود
+        /// در همین پنجره نشان داده می‌شود و در پایان دکمه به «نصب» تبدیل می‌شود.
+        /// </summary>
+        private static async System.Threading.Tasks.Task ShowUpdatePromptAsync(
+            Helpers.UpdateInfo info, FrameworkElement root)
+        {
+            var message = new Microsoft.UI.Xaml.Controls.TextBlock
+            {
+                Text = string.Format(
+                    L10n.T("Version {0} is available (you have {1}). Download it now?"),
+                    info.LatestVersion, UpdateChecker.CurrentVersion),
+                TextWrapping = TextWrapping.Wrap,
+            };
+
+            var bar = new Microsoft.UI.Xaml.Controls.ProgressBar
+            {
+                Minimum = 0,
+                Maximum = 100,
+                Value = 0,
+                Margin = new Thickness(0, 12, 0, 0),
+                Visibility = Visibility.Collapsed,
+            };
+
+            var percent = new Microsoft.UI.Xaml.Controls.TextBlock
+            {
+                Margin = new Thickness(0, 6, 0, 0),
+                Opacity = 0.8,
+                Visibility = Visibility.Collapsed,
+            };
+
+            var panel = new Microsoft.UI.Xaml.Controls.StackPanel { MinWidth = 320 };
+            panel.Children.Add(message);
+            panel.Children.Add(bar);
+            panel.Children.Add(percent);
+
+            var dlg = new Microsoft.UI.Xaml.Controls.ContentDialog
+            {
+                Title = L10n.T("Update available"),
+                Content = panel,
+                PrimaryButtonText = L10n.T("Download"),
+                CloseButtonText = L10n.T("Later"),
+                DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
+                XamlRoot = root.XamlRoot,
+                FlowDirection = L10n.Direction,
+            };
+
+            string? downloadedPath = null;
+            bool busy = false;
+
+            dlg.PrimaryButtonClick += async (sender, args) =>
+            {
+                // فایل آماده است — این کلیک یعنی «نصب کن»، پنجره بسته شود
+                if (downloadedPath != null) return;
+
+                // در حین دانلود پنجره نباید بسته شود
+                args.Cancel = true;
+                if (busy) return;
+                busy = true;
+
+                var deferral = args.GetDeferral();
+                try
+                {
+                    sender.IsPrimaryButtonEnabled = false;
+                    message.Text = L10n.T("Downloading update...");
+                    bar.Visibility = Visibility.Visible;
+                    bar.Value = 0;
+                    percent.Visibility = Visibility.Visible;
+                    percent.Text = "0%";
+
+                    var progress = new System.Progress<double>(p =>
+                    {
+                        bar.Value = p;
+                        percent.Text = $"{p:0}%";
+                    });
+
+                    string? path = await UpdateChecker.DownloadAsync(info, progress);
+
+                    if (path == null)
+                    {
+                        message.Text = L10n.T("Download failed. Try again later.");
+                        bar.Visibility = Visibility.Collapsed;
+                        percent.Visibility = Visibility.Collapsed;
+                        sender.PrimaryButtonText = L10n.T("Download");
+                        sender.IsPrimaryButtonEnabled = true;
+                        return;
+                    }
+
+                    downloadedPath = path;
+                    message.Text = string.Format(
+                        L10n.T("Version {0} has been downloaded. Install it now to update Pulse."),
+                        info.LatestVersion);
+                    bar.Value = 100;
+                    percent.Text = "100%";
+                    sender.PrimaryButtonText = L10n.T("Install");
+                    sender.IsPrimaryButtonEnabled = true;
+                }
+                catch
+                {
+                    sender.IsPrimaryButtonEnabled = true;
+                }
+                finally
+                {
+                    busy = false;
+                    deferral.Complete();
+                }
+            };
+
+            var result = await dlg.ShowAsync();
+
+            // فقط وقتی فایل دانلود شده و کاربر «نصب» را زده باشد نصاب اجرا می‌شود
+            if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary && downloadedPath != null)
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(
+                        new System.Diagnostics.ProcessStartInfo(downloadedPath) { UseShellExecute = true });
+                }
+                catch { }
+            }
         }
 
         private static void ApplyWidget()

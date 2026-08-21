@@ -208,6 +208,9 @@ namespace TaskManagerPro.Helpers
             ["Downloading version {0}..."] = "در حال دانلود نسخه‌ی {0}...",
             ["Download failed. Try again later."] = "دانلود ناموفق بود. بعداً دوباره امتحان کنید.",
             ["Version {0} downloaded. Install it to update."] = "نسخه‌ی {0} دانلود شد. برای بروزرسانی نصب کنید.",
+            ["Update available"] = "بروزرسانی موجود است",
+            ["Version {0} is available (you have {1}). Download it now?"] = "نسخه‌ی {0} منتشر شده است (نسخه‌ی فعلی شما {1}). همین حالا دانلود شود؟",
+            ["Downloading update..."] = "در حال دانلود بروزرسانی...",
             ["Update ready"] = "بروزرسانی آماده است",
             ["Version {0} has been downloaded. Install it now to update Pulse."] =
                 "نسخه‌ی {0} دانلود شد. همین حالا نصب کنید تا Pulse بروزرسانی شود.",
@@ -444,6 +447,9 @@ namespace TaskManagerPro.Helpers
             ["Downloading version {0}..."] = "Загрузка версии {0}...",
             ["Download failed. Try again later."] = "Загрузка не удалась. Попробуйте позже.",
             ["Version {0} downloaded. Install it to update."] = "Версия {0} загружена. Установите для обновления.",
+            ["Update available"] = "Доступно обновление",
+            ["Version {0} is available (you have {1}). Download it now?"] = "Доступна версия {0} (у вас {1}). Загрузить сейчас?",
+            ["Downloading update..."] = "Загрузка обновления...",
             ["Update ready"] = "Обновление готово",
             ["Version {0} has been downloaded. Install it now to update Pulse."] =
                 "Версия {0} загружена. Установите сейчас, чтобы обновить Pulse.",
@@ -673,6 +679,9 @@ namespace TaskManagerPro.Helpers
             ["Downloading version {0}..."] = "{0} versiyası yüklənir...",
             ["Download failed. Try again later."] = "Yükləmə uğursuz oldu. Sonra yenidən cəhd edin.",
             ["Version {0} downloaded. Install it to update."] = "{0} versiyası yükləndi. Yeniləmək üçün quraşdırın.",
+            ["Update available"] = "Yeniləmə mövcuddur",
+            ["Version {0} is available (you have {1}). Download it now?"] = "{0} versiyası mövcuddur (sizdə {1} var). İndi yüklənsin?",
+            ["Downloading update..."] = "Yeniləmə yüklənir...",
             ["Update ready"] = "Yeniləmə hazırdır",
             ["Version {0} has been downloaded. Install it now to update Pulse."] =
                 "{0} versiyası yükləndi. Pulse-u yeniləmək üçün indi quraşdırın.",
@@ -902,6 +911,9 @@ namespace TaskManagerPro.Helpers
             ["Downloading version {0}..."] = "{0} sürümü indiriliyor...",
             ["Download failed. Try again later."] = "İndirme başarısız oldu. Daha sonra tekrar deneyin.",
             ["Version {0} downloaded. Install it to update."] = "{0} sürümü indirildi. Güncellemek için yükleyin.",
+            ["Update available"] = "Güncelleme mevcut",
+            ["Version {0} is available (you have {1}). Download it now?"] = "{0} sürümü yayınlandı (sizde {1} var). Şimdi indirilsin mi?",
+            ["Downloading update..."] = "Güncelleme indiriliyor...",
             ["Update ready"] = "Güncelleme hazır",
             ["Version {0} has been downloaded. Install it now to update Pulse."] =
                 "{0} sürümü indirildi. Pulse'u güncellemek için şimdi yükleyin.",
