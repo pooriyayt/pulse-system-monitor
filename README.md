@@ -38,7 +38,7 @@
 
 ## 📥 Installation
 
-### Option 1 — Winget (recommended)
+## Option 1 — Winget (recommended)
 
 ```powershell
 winget install wl-std.pulse
