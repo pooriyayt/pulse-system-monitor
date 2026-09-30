@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  Pulse — Installer Builder
 #  Builds the latest version in Release, signs it,
 #  and produces a single setup exe (Pulse-<ver>-Setup.exe)
@@ -17,7 +17,9 @@ New-Item -ItemType Directory -Force $outDir | Out-Null
 [xml]$manifest = Get-Content (Join-Path $root "TaskManagerPro\Package.appxmanifest")
 $version = $manifest.Package.Identity.Version   # e.g. 1.7.0.0
 $shortVer = ($version -split '\.')[0..1] -join '.'
-Write-Host "Building Pulse $shortVer ..." -ForegroundColor Cyan
+# installer version (independent of the app package version above)
+$installerVer = "2.1.1"
+Write-Host "Building Pulse $shortVer, installer $installerVer ..." -ForegroundColor Cyan
 
 # ---- signing certificate (create if missing) ----
 $cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=TaskManagerPro" } | Select-Object -First 1
@@ -81,6 +83,10 @@ if (-not $vclibs) {
         -Recurse -Filter "Microsoft.VCLibs.x64.14.00.Desktop.appx" -ErrorAction SilentlyContinue |
         Sort-Object FullName -Descending | Select-Object -First 1
 }
+if (-not $vclibs) {
+    # fallback: copy kept next to this script (Microsoft-signed, from aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx)
+    $vclibs = Get-ChildItem (Join-Path $root "tools\deps") -Filter "Microsoft.VCLibs.x64*.appx" -ErrorAction SilentlyContinue | Select-Object -First 1
+}
 if (-not $vclibs) { Write-Host "VCLibs Desktop package not found!" -ForegroundColor Red; exit 1 }
 Copy-Item $vclibs.FullName (Join-Path $depDir "dep.vclibs.appx")
 Write-Host "  dependency: $($vclibs.Name)" -ForegroundColor DarkGray
@@ -95,296 +101,19 @@ Copy-Item (Join-Path $root "TaskManagerPro\Assets\app.ico") (Join-Path $stage "a
 Copy-Item (Join-Path $depDir "dep.runtime.msix") (Join-Path $stage "dep.runtime.msix")
 Copy-Item (Join-Path $depDir "dep.vclibs.appx") (Join-Path $stage "dep.vclibs.appx")
 
-# ---- installer source (real exe — msix and cert embedded inside) ----
-# compiled with Windows built-in csc (.NET Framework 4.8); runs on all Windows 10/11 machines.
-$installerCs = Join-Path $env:TEMP "TMProInstaller.cs"
-@'
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Principal;
-
-[assembly: AssemblyTitle("Pulse Setup")]
-[assembly: AssemblyDescription("Pulse - System Monitor Installer")]
-[assembly: AssemblyProduct("Pulse")]
-[assembly: AssemblyCompany("Pouriya Parniyan")]
-[assembly: AssemblyCopyright("(c) Pouriya Parniyan - pouriyaparniyan.ir")]
-[assembly: AssemblyVersion("__VER__")]
-[assembly: AssemblyFileVersion("__VER__")]
-[assembly: AssemblyInformationalVersion("__SHORTVER__")]
-
-static class Setup
-{
-    static bool silent = false;
-    static string logFile = Path.Combine(Path.GetTempPath(), "Pulse-Setup.log");
-
-    static bool IsAdmin()
-    {
-        try
-        {
-            using (WindowsIdentity id = WindowsIdentity.GetCurrent())
-                return new WindowsPrincipal(id).IsInRole(WindowsBuiltInRole.Administrator);
-        }
-        catch { return false; }
-    }
-
-    static string Extract(string resName, string dir)
-    {
-        string path = Path.Combine(dir, resName);
-        using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(resName))
-        using (FileStream f = File.Create(path))
-            s.CopyTo(f);
-        return path;
-    }
-
-    static void Log(string msg)
-    {
-        try { Console.WriteLine(msg); } catch { }
-        try { File.AppendAllText(logFile, DateTime.Now.ToString("HH:mm:ss") + "  " + msg + Environment.NewLine); } catch { }
-    }
-
-    // Never blocks when there is no interactive console (winget, CI, redirected stdin).
-    static void Pause(string msg)
-    {
-        if (silent) return;
-        try
-        {
-            if (Console.IsInputRedirected) return;
-            Console.WriteLine(msg);
-            Console.ReadKey();
-        }
-        catch { }
-    }
-
-    // Runs a powershell command, returns exit code, captures all output.
-    static int RunPowerShell(string command, out string output)
-    {
-        ProcessStartInfo ps = new ProcessStartInfo("powershell.exe",
-            "-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"" + command.Replace("\"", "\\\"") + "\"");
-        ps.UseShellExecute = false;
-        ps.CreateNoWindow = true;
-        ps.RedirectStandardOutput = true;
-        ps.RedirectStandardError = true;
-        Process p = Process.Start(ps);
-        string so = p.StandardOutput.ReadToEnd();
-        string se = p.StandardError.ReadToEnd();
-        p.WaitForExit();
-        output = (so + Environment.NewLine + se).Trim();
-        return p.ExitCode;
-    }
-
-    static bool CertAlreadyTrusted(X509Certificate2 cert)
-    {
-        try
-        {
-            X509Store store = new X509Store(StoreName.TrustedPeople, StoreLocation.LocalMachine);
-            store.Open(OpenFlags.ReadOnly);
-            bool found = store.Certificates.Find(X509FindType.FindByThumbprint, cert.Thumbprint, false).Count > 0;
-            store.Close();
-            return found;
-        }
-        catch { return false; }
-    }
-
-    static int TrustCertificate(string cerPath)
-    {
-        X509Certificate2 cert = new X509Certificate2(cerPath);
-        X509Store store = new X509Store(StoreName.TrustedPeople, StoreLocation.LocalMachine);
-        store.Open(OpenFlags.ReadWrite);
-        store.Add(cert);
-        store.Close();
-        return 0;
-    }
-
-    static string StageFiles(out string msix, out string cer, out string depRuntime, out string depVcLibs)
-    {
-        string dir = Path.Combine(Path.GetTempPath(), "TMProSetup");
-        Directory.CreateDirectory(dir);
-        msix = Extract("app.msix", dir);
-        cer = Extract("app.cer", dir);
-        depRuntime = Extract("dep.runtime.msix", dir);
-        depVcLibs = Extract("dep.vclibs.appx", dir);
-        return dir;
-    }
-
-    static int Main(string[] args)
-    {
-        bool trustOnly = false;
-        foreach (string a in args)
-        {
-            string al = a.ToLowerInvariant();
-            if (al == "/s" || al == "--silent" || al == "/silent" || al == "-s" || al == "/quiet" || al == "/q")
-                silent = true;
-            if (al == "/trustcert")
-            {
-                trustOnly = true;
-                silent = true;
-            }
-        }
-
-        try { if (!silent) Console.Title = "Pulse Setup"; } catch { }
-
-        string msix, cer, depRuntime, depVcLibs;
-
-        // ---- elevated helper pass: only registers the signing certificate ----
-        if (trustOnly)
-        {
-            try
-            {
-                StageFiles(out msix, out cer, out depRuntime, out depVcLibs);
-                return TrustCertificate(cer);
-            }
-            catch (Exception ex)
-            {
-                Log("  Certificate registration failed: " + ex.Message);
-                return 1;
-            }
-        }
-
-        if (!silent)
-        {
-            Console.WriteLine();
-            Console.WriteLine("  ==============================================");
-            Console.WriteLine("        Pulse  -  System Monitor  -  Installer");
-            Console.WriteLine("  ==============================================");
-            Console.WriteLine();
-        }
-
-        try
-        {
-            Log("  Extracting files...");
-            StageFiles(out msix, out cer, out depRuntime, out depVcLibs);
-
-            // ---- trust the signing certificate (needs admin; elevate just for this) ----
-            X509Certificate2 cert = new X509Certificate2(cer);
-            if (!CertAlreadyTrusted(cert))
-            {
-                Log("  Trusting application certificate...");
-                if (IsAdmin())
-                {
-                    TrustCertificate(cer);
-                }
-                else
-                {
-                    // Elevate a short-lived child that only touches the certificate store,
-                    // so the package itself is still installed for the *current* user.
-                    try
-                    {
-                        ProcessStartInfo psi = new ProcessStartInfo(
-                            Assembly.GetExecutingAssembly().Location, "/trustcert");
-                        psi.UseShellExecute = true;
-                        psi.Verb = "runas";
-                        Process elevated = Process.Start(psi);
-                        elevated.WaitForExit();
-                        if (elevated.ExitCode != 0)
-                        {
-                            Log("  Could not register the signing certificate.");
-                            Pause("  Press any key to close...");
-                            return elevated.ExitCode;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log("  Administrator access is required to install: " + ex.Message);
-                        Pause("  Press any key to close...");
-                        return 1;
-                    }
-                }
-            }
-
-            // ---- install, dependencies first ----
-            // The app is WinUI 3: without -DependencyPath this fails with 0x80073CF3
-            // on any machine that does not already have the Windows App Runtime.
-            Log("  Installing Pulse (this may take a minute)...");
-            // VCLibs is a dependency of the runtime, not of the app, so -DependencyPath
-            // rejects it ("provided but not used"). Install it on its own first.
-            string deps = "@('" + depRuntime + "')";
-            string cmd =
-                "$ErrorActionPreference='Stop'; " +
-                "try { Add-AppxPackage -Path '" + depVcLibs + "' } catch { }; " +
-                "try { Add-AppxPackage -Path '" + msix + "' -DependencyPath " + deps + " -ForceApplicationShutdown } " +
-                "catch { Get-AppxPackage TaskManagerPro | Remove-AppxPackage -ErrorAction SilentlyContinue; " +
-                "Add-AppxPackage -Path '" + msix + "' -DependencyPath " + deps + " }";
-
-            string output;
-            int code = RunPowerShell(cmd, out output);
-
-            if (code != 0)
-            {
-                Log("");
-                Log("  Installation FAILED:");
-                Log("  " + output);
-                Log("");
-                Log("  Windows 10 version 1809 or newer is required.");
-                Log("  Full log: " + logFile);
-                Pause("  Press any key to close...");
-                return 1;
-            }
-
-            try
-            {
-                Log("  Creating desktop shortcut...");
-                string iconDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Pulse");
-                Directory.CreateDirectory(iconDir);
-                string iconPath = Path.Combine(iconDir, "Pulse.ico");
-                using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("app.ico"))
-                using (FileStream f = File.Create(iconPath))
-                    s.CopyTo(f);
-
-                string shortcutCmd =
-                    "$pkg = Get-AppxPackage TaskManagerPro; " +
-                    "$lnk = (New-Object -ComObject WScript.Shell).CreateShortcut([IO.Path]::Combine($env:PUBLIC, 'Desktop', 'Pulse.lnk')); " +
-                    "$lnk.TargetPath = 'explorer.exe'; " +
-                    "$lnk.Arguments = ('shell:AppsFolder\\' + $pkg.PackageFamilyName + '!App'); " +
-                    "$lnk.IconLocation = '" + iconPath + ",0'; " +
-                    "$lnk.Description = 'Pulse - System Monitor'; " +
-                    "$lnk.Save()";
-                string ignored;
-                RunPowerShell(shortcutCmd, out ignored);
-            }
-            catch { }
-
-            if (!silent)
-            {
-                Console.WriteLine();
-                Console.WriteLine("  ==============================================");
-                Console.WriteLine("   Pulse installed successfully!");
-                Console.WriteLine("   A shortcut was added to your desktop.");
-                Console.WriteLine("  ==============================================");
-                Console.WriteLine();
-            }
-            Pause("  Press any key to close...");
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            Log("");
-            Log("  Installation FAILED: " + ex.Message);
-            Log("  Full log: " + logFile);
-            Pause("  Press any key to close...");
-            return 1;
-        }
-    }
-}
-'@ -replace '__VER__', $version -replace '__SHORTVER__', $shortVer | Set-Content $installerCs -Encoding UTF8
-
-# ---- compile single exe ----
-$setupExe = Join-Path $outDir "Pulse-$shortVer-Setup.exe"
+# ---- build the graphical installer (WPF, .NET Framework 4.8) ----
+# msix, cert and framework dependencies are embedded inside the single exe.
+# Same command line as the old console installer: /s /silent /quiet  (winget relies on this).
+$setupProj = Join-Path $root "src\Pulse.Setup\Pulse.Setup.csproj"
+$setupExe = Join-Path $outDir "Pulse-$installerVer-Setup.exe"
 Remove-Item $setupExe -Force -ErrorAction SilentlyContinue
+$buildOut = Join-Path $env:TEMP "TMP-setup-out"
+Remove-Item $buildOut -Recurse -Force -ErrorAction SilentlyContinue
 
-$icon = Join-Path $root "TaskManagerPro\Assets\app.ico"
-$csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-& $csc /nologo /target:exe /platform:anycpu /out:"$setupExe" `
-    /win32icon:"$icon" `
-    /res:"$stage\app.msix",app.msix `
-    /res:"$stage\app.cer",app.cer `
-    /res:"$stage\app.ico",app.ico `
-    /res:"$stage\dep.runtime.msix",dep.runtime.msix `
-    /res:"$stage\dep.vclibs.appx",dep.vclibs.appx `
-    "$installerCs"
-if ($LASTEXITCODE -ne 0) { Write-Host "csc compile failed" -ForegroundColor Red; exit 1 }
+dotnet build $setupProj -c Release -p:PayloadDir="$stage" -p:PulseVersion=$installerVer.0 `
+    -o $buildOut -v:q -nologo --no-incremental
+if ($LASTEXITCODE -ne 0) { Write-Host "setup build failed" -ForegroundColor Red; exit 1 }
+Copy-Item (Join-Path $buildOut "Pulse-Setup.exe") $setupExe -Force
 
 if (Test-Path $setupExe) {
     $mb = [Math]::Round((Get-Item $setupExe).Length / 1MB, 1)

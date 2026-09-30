@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Glass-style graphical installer for Pulse.
+    Build with -p:PayloadDir=<dir>; the folder must hold app.msix, app.cer, dep.runtime.msix and
+    dep.vclibs.appx (all get embedded inside the exe). Targets .NET Framework 4.8, which ships with
+    every Windows 10/11, so the setup needs no runtime.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>Pulse.Setup</RootNamespace>
+    <AssemblyName>Pulse-Setup</AssemblyName>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>$(PulseVersion)</Version>
+    <Product>Pulse</Product>
+    <AssemblyTitle>Pulse Setup</AssemblyTitle>
+    <Description>Pulse - System Monitor Installer</Description>
+    <Company>Pouriya Parniyan</Company>
+    <Copyright>(c) Pouriya Parniyan - pouriyaparniyan.ir</Copyright>
+    <DebugType>none</DebugType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(PulseVersion)' == ''">
+    <Version>2.1.1</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+    <Resource Include="Fonts\SFArabic-Regular.ttf" />
+    <Resource Include="Fonts\SF-Arabic-700.ttf" />
+    <EmbeddedResource Include="Assets\app.ico" LogicalName="app.ico" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(PayloadDir)' != ''">
+    <EmbeddedResource Include="$(PayloadDir)\app.msix" LogicalName="app.msix" />
+    <EmbeddedResource Include="$(PayloadDir)\app.cer" LogicalName="app.cer" />
+    <EmbeddedResource Include="$(PayloadDir)\dep.runtime.msix" LogicalName="dep.runtime.msix" />
+    <EmbeddedResource Include="$(PayloadDir)\dep.vclibs.appx" LogicalName="dep.vclibs.appx" />
+  </ItemGroup>
+</Project>

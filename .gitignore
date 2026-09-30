@@ -6,3 +6,6 @@ Installer/
 OpenSource/
 *.user
 *.pfx
+
+# Microsoft VCLibs redistributable used by the installer build (download, do not commit)
+tools/deps/
