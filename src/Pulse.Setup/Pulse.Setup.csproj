@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(PulseVersion)' == ''">
-    <Version>2.1.1</Version>
+    <Version>2.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -46,5 +46,7 @@
     <EmbeddedResource Include="$(PayloadDir)\app.cer" LogicalName="app.cer" />
     <EmbeddedResource Include="$(PayloadDir)\dep.runtime.msix" LogicalName="dep.runtime.msix" />
     <EmbeddedResource Include="$(PayloadDir)\dep.vclibs.appx" LogicalName="dep.vclibs.appx" />
+    <!-- payload-free build of this same exe, installed as the uninstaller -->
+    <EmbeddedResource Include="$(PayloadDir)\uninstall.exe" LogicalName="uninstall.exe" Condition="Exists('$(PayloadDir)\uninstall.exe')" />
   </ItemGroup>
 </Project>

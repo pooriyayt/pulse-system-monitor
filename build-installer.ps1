@@ -18,7 +18,7 @@ New-Item -ItemType Directory -Force $outDir | Out-Null
 $version = $manifest.Package.Identity.Version   # e.g. 1.7.0.0
 $shortVer = ($version -split '\.')[0..1] -join '.'
 # installer version (independent of the app package version above)
-$installerVer = "2.1.1"
+$installerVer = "2.2"
 Write-Host "Building Pulse $shortVer, installer $installerVer ..." -ForegroundColor Cyan
 
 # ---- signing certificate (create if missing) ----
@@ -110,6 +110,14 @@ Remove-Item $setupExe -Force -ErrorAction SilentlyContinue
 $buildOut = Join-Path $env:TEMP "TMP-setup-out"
 Remove-Item $buildOut -Recurse -Force -ErrorAction SilentlyContinue
 
+# 1) small payload-free build = the uninstaller (embedded into the setup, registered in Programs and Features)
+$uninstOut = Join-Path $env:TEMP "TMP-uninstall-out"
+Remove-Item $uninstOut -Recurse -Force -ErrorAction SilentlyContinue
+dotnet build $setupProj -c Release -p:PulseVersion=$installerVer.0 -o $uninstOut -v:q -nologo --no-incremental
+if ($LASTEXITCODE -ne 0) { Write-Host "uninstaller build failed" -ForegroundColor Red; exit 1 }
+Copy-Item (Join-Path $uninstOut "Pulse-Setup.exe") (Join-Path $stage "uninstall.exe")
+
+# 2) the setup itself, with every payload embedded
 dotnet build $setupProj -c Release -p:PayloadDir="$stage" -p:PulseVersion=$installerVer.0 `
     -o $buildOut -v:q -nologo --no-incremental
 if ($LASTEXITCODE -ne 0) { Write-Host "setup build failed" -ForegroundColor Red; exit 1 }

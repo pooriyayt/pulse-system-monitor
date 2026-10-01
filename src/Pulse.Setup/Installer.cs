@@ -22,7 +22,7 @@ namespace Pulse.Setup
             get
             {
                 var v = Assembly.GetExecutingAssembly().GetName().Version;
-                return v.Major + "." + v.Minor + "." + v.Build;
+                return v.Build > 0 ? v.Major + "." + v.Minor + "." + v.Build : v.Major + "." + v.Minor;
             }
         }
 
@@ -100,7 +100,7 @@ namespace Pulse.Setup
 
         // ---- powershell ----
 
-        static int RunPowerShell(string command, out string output)
+        public static int RunPowerShell(string command, out string output)
         {
             var psi = new ProcessStartInfo("powershell.exe",
                 "-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"" + command.Replace("\"", "\\\"") + "\"")
@@ -188,7 +188,11 @@ namespace Pulse.Setup
             progress(0.85, Strings.StepShortcut);
             if (desktopShortcut) CreateShortcut();
 
-            progress(1.0, Strings.StepDone);
+            // Programs and Features entry + graphical uninstaller
+            progress(0.93, Strings.StepRegister);
+            Uninstaller.Register(Version);
+
+            progress(1.0, Strings.StepFinalizing);
             try { Directory.Delete(dir, true); } catch { }
         }
 

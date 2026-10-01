@@ -10,37 +10,36 @@ using System.Windows.Media.Imaging;
 
 namespace Pulse.Setup
 {
-    public partial class MainWindow : Window
+    /// <summary>Graphical uninstaller (setup exe started with /uninstall).</summary>
+    public partial class UninstallWindow : Window
     {
-        enum Stage { Welcome, Working, Done, Error }
+        enum Stage { Confirm, Working, Done, Error }
 
         Stage _stage;
         bool _busy;
+        bool _removed;
 
-        public MainWindow()
+        public UninstallWindow()
         {
             InitializeComponent();
             FlowDirection = Strings.Fa ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
 
-            TaglineText.Text = Strings.Tagline;
-            Feature1.Text = Strings.Feature1;
-            Feature2.Text = Strings.Feature2;
-            Feature3.Text = Strings.Feature3;
-            DesktopBox.Content = Strings.OptDesktop;
-            LaunchBox.Content = Strings.OptLaunch;
+            CaptionText.Text = Title = Strings.UCaption;
+            TitleText.Text = Strings.UTitle;
+            IntroText.Text = Strings.UText;
+            Item1.Text = Strings.UItem1;
+            Item2.Text = Strings.UItem2;
+            Item3.Text = Strings.UItem3;
             MadeByText.Text = Strings.MadeBy;
-            CaptionText.Text = Strings.Caption;
-            Title = Strings.Caption;
             VersionText.Text = "v" + Installer.Version;
 
             SourceInitialized += (_, __) =>
             {
-                // Windows 11: real acrylic behind a translucent tint; Windows 10: opaque gradient
                 if (Native.ApplyGlass(this))
                 {
-                    BackdropBrush.GradientStops[0].Color = Color.FromArgb(0xB8, 0x0C, 0x1A, 0x22);
-                    BackdropBrush.GradientStops[1].Color = Color.FromArgb(0xC8, 0x09, 0x11, 0x1A);
-                    BackdropBrush.GradientStops[2].Color = Color.FromArgb(0xD8, 0x06, 0x0B, 0x12);
+                    BackdropBrush.GradientStops[0].Color = Color.FromArgb(0xB8, 0x1F, 0x0D, 0x16);
+                    BackdropBrush.GradientStops[1].Color = Color.FromArgb(0xC8, 0x12, 0x0A, 0x12);
+                    BackdropBrush.GradientStops[2].Color = Color.FromArgb(0xD8, 0x0A, 0x07, 0x0D);
                 }
             };
             Loaded += OnLoaded;
@@ -48,7 +47,7 @@ namespace Pulse.Setup
 
         async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            LogoFloat.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty,
+            LogoFloat.BeginAnimation(TranslateTransform.YProperty,
                 new DoubleAnimation(4, -6, TimeSpan.FromSeconds(2.4))
                 {
                     AutoReverse = true,
@@ -56,14 +55,14 @@ namespace Pulse.Setup
                     EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
                 });
 
-            Show(Stage.Welcome);
+            Show(Stage.Confirm);
 
             // developer aid: /snap=<file.png> renders the window and exits
             var snap = App.Args.FirstOrDefault(a => a.StartsWith("/snap=", StringComparison.OrdinalIgnoreCase))?.Substring(6).Trim('"');
             if (snap != null)
             {
                 if (App.Args.Any(a => a == "/snapdone")) Show(Stage.Done);
-                if (App.Args.Any(a => a == "/snapprogress")) { Show(Stage.Working); SetProgress(0.62, Strings.StepApp); }
+                if (App.Args.Any(a => a == "/snapprogress")) { Show(Stage.Working); SetProgress(0.4, Strings.UStepPackage); }
                 await Task.Delay(1500);
                 var rtb = new RenderTargetBitmap((int)ActualWidth, (int)ActualHeight, 96, 96, PixelFormats.Pbgra32);
                 rtb.Render(Root);
@@ -74,30 +73,30 @@ namespace Pulse.Setup
             }
         }
 
-        // ============================== stages ==============================
-
         void Show(Stage s)
         {
             _stage = s;
-            WelcomePage.Visibility = s == Stage.Welcome ? Visibility.Visible : Visibility.Collapsed;
+            ConfirmPage.Visibility = s == Stage.Confirm ? Visibility.Visible : Visibility.Collapsed;
             ProgressPage.Visibility = s == Stage.Working ? Visibility.Visible : Visibility.Collapsed;
             DonePage.Visibility = s == Stage.Done || s == Stage.Error ? Visibility.Visible : Visibility.Collapsed;
             PrimaryButton.Visibility = SecondaryButton.Visibility = Visibility.Visible;
+            PrimaryButton.Style = (Style)FindResource("DangerButton");
 
             switch (s)
             {
-                case Stage.Welcome:
-                    PrimaryButton.Content = Strings.Install;
+                case Stage.Confirm:
+                    PrimaryButton.Content = Strings.UButton;
                     SecondaryButton.Content = Strings.Cancel;
                     break;
                 case Stage.Working:
                     PrimaryButton.Visibility = SecondaryButton.Visibility = Visibility.Collapsed;
                     break;
                 case Stage.Done:
-                    DoneTitle.Text = Strings.DoneTitle;
-                    DoneText.Text = Strings.DoneText;
-                    PrimaryButton.Content = Strings.LaunchNow;
-                    SecondaryButton.Content = Strings.Close;
+                    DoneTitle.Text = Strings.UDoneTitle;
+                    DoneText.Text = Strings.UDoneText;
+                    PrimaryButton.Style = (Style)FindResource("PrimaryButton");
+                    PrimaryButton.Content = Strings.Close;
+                    SecondaryButton.Visibility = Visibility.Collapsed;
                     AnimateDone(true);
                     break;
                 case Stage.Error:
@@ -136,23 +135,19 @@ namespace Pulse.Setup
             });
         }
 
-        // ============================== install ==============================
-
-        async Task RunInstall()
+        async Task RunUninstall()
         {
             if (_busy) return;
             _busy = true;
-            ProgressTitle.Text = Strings.Installing;
+            ProgressTitle.Text = Strings.Uninstalling;
             Show(Stage.Working);
-            bool desktop = DesktopBox.IsChecked == true;
             try
             {
-                await Task.Run(() => Installer.Install(desktop, SetProgress));
-                // مکث کوتاه تا کاربر پیام «در حال نهایی‌سازی» را ببیند
-                await Task.Delay(1500);
+                await Task.Run(() => Uninstaller.Uninstall(SetProgress));
+                await Task.Delay(1500); // let the "finalizing" message be seen
+                _removed = true;
                 _busy = false;
                 Show(Stage.Done);
-                if (LaunchBox.IsChecked == true) Installer.Launch();
             }
             catch (Exception ex)
             {
@@ -163,19 +158,10 @@ namespace Pulse.Setup
             }
         }
 
-        // ============================== buttons ==============================
-
         async void Primary_Click(object sender, RoutedEventArgs e)
         {
-            switch (_stage)
-            {
-                case Stage.Welcome: await RunInstall(); break;
-                case Stage.Done:
-                    if (LaunchBox.IsChecked != true) Installer.Launch();
-                    Close();
-                    break;
-                default: Close(); break;
-            }
+            if (_stage == Stage.Confirm) await RunUninstall();
+            else Close();
         }
 
         void Secondary_Click(object sender, RoutedEventArgs e) => Close();
@@ -193,6 +179,12 @@ namespace Pulse.Setup
         {
             if (_busy) e.Cancel = true;
             base.OnClosing(e);
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            if (_removed) Uninstaller.ScheduleSelfDelete();
+            base.OnClosed(e);
         }
     }
 }

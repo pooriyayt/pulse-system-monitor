@@ -33,6 +33,27 @@ namespace Pulse.Setup
                 return;
             }
 
+            // uninstaller (Programs and Features / Settings › Apps)
+            // the payload-free copy (Pulse-Uninstall.exe) is always the uninstaller, even without arguments
+            bool isUninstaller = !System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceNames().Contains("app.msix");
+            if (isUninstaller || Has("/uninstall", "/u"))
+            {
+                if (Silent)
+                {
+                    Task.Run(() =>
+                    {
+                        int code = 0;
+                        try { Uninstaller.Uninstall((p, s) => Installer.Log(s)); }
+                        catch (Exception ex) { Installer.Log("FAILED: " + ex.Message); code = 1; }
+                        Uninstaller.ScheduleSelfDelete();
+                        Dispatcher.Invoke(() => Shutdown(code));
+                    });
+                    return;
+                }
+                new UninstallWindow().Show();
+                return;
+            }
+
             // silent install (winget / scripts): no window, exit code reports the result
             if (Silent)
             {

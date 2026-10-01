@@ -7,13 +7,16 @@
          (چون شورتکات‌ها روی همین Grid ریشه نشسته‌اند) تولتیپ «Ctrl+1» را
          زیر ماوس نشان می‌دهد؛ شورتکات‌ها بدون تولتیپ هم کار می‌کنند. -->
     <Grid KeyboardAcceleratorPlacementMode="Hidden">
-        <!-- هات‌کی‌های داخل برنامه: Ctrl+1 تا Ctrl+5 برای جابه‌جایی بین تب‌ها -->
+        <!-- هات‌کی‌های داخل برنامه: Ctrl+1 تا Ctrl+8 برای جابه‌جایی بین تب‌ها -->
         <Grid.KeyboardAccelerators>
             <KeyboardAccelerator Key="Number1" Modifiers="Control" Invoked="Tab1_Invoked" />
             <KeyboardAccelerator Key="Number2" Modifiers="Control" Invoked="Tab2_Invoked" />
             <KeyboardAccelerator Key="Number3" Modifiers="Control" Invoked="Tab3_Invoked" />
             <KeyboardAccelerator Key="Number4" Modifiers="Control" Invoked="Tab4_Invoked" />
             <KeyboardAccelerator Key="Number5" Modifiers="Control" Invoked="Tab5_Invoked" />
+            <KeyboardAccelerator Key="Number6" Modifiers="Control" Invoked="Tab6_Invoked" />
+            <KeyboardAccelerator Key="Number7" Modifiers="Control" Invoked="Tab7_Invoked" />
+            <KeyboardAccelerator Key="Number8" Modifiers="Control" Invoked="Tab8_Invoked" />
         </Grid.KeyboardAccelerators>
 
         <Grid.RowDefinitions>
@@ -75,6 +78,24 @@
                 <NavigationViewItem Content="Services" Tag="services">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE912;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Memory Optimizer" Tag="memopt">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xEEA0;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Network Connections" Tag="network">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE968;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="File Unlocker" Tag="unlocker">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE785;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>

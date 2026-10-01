@@ -4,7 +4,7 @@
 
 **A beautiful, modern task manager & system monitor for Windows 11, built with WinUI 3 and .NET 8.**
 
-[⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-2.1.1-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
+[⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-2.2-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
 *Open source — read the code, audit it, build it yourself.*<br><br>
  <img src="https://img.shields.io/github/downloads/pooriyayt/pulse-system-monitor/total.svg" alt="total" > <img src="https://img.shields.io/badge/antivirus-PASS-green" alt="antivirus" >
@@ -29,6 +29,9 @@
   - Search, sort, advanced filters, copy details, **export to CSV**
 - **Startup Apps** — enable/disable with estimated boot impact and real app icons
 - **Services** — browse and manage Windows services
+- **Memory Optimizer** — live RAM gauge, trim process working sets and clear the standby list (admin)
+- **Network Connections** — every TCP/UDP connection and open port with its owning process, live refresh, search and End process
+- **File Unlocker** — drag a file or folder in to see which processes are locking it, then end them or unlock all at once
 - **Desktop Widget** — small always-on-top window with live CPU / RAM / GPU graphs
 - **System Tray** — live mini-graphs in the tray, fully customizable per icon (color, background, size)
 - **Usage alarms** — Windows notification when CPU / RAM / temperature crosses your limit
@@ -46,7 +49,7 @@ winget install wl-std.pulse
 
 ### Option 2 — Manual download
 
-1. Download: **[Pulse-2.1.1-Setup.exe](https://dl1.wl-std.com/Pulse-2.1.1-Setup.exe)**
+1. Download: **[Pulse-2.2-Setup.exe](https://dl1.wl-std.com/Pulse-2.2-Setup.exe)**
 2. Run it — it will ask for administrator access once (to trust the certificate and install)
 3. Done. Find **Pulse** in the Start menu, plus a shortcut on your desktop.
 
@@ -109,7 +112,7 @@ This will:
 
 **یک تسک‌منیجر و مانیتور سیستم مدرن و زیبا برای ویندوز ۱۱، ساخته‌شده با WinUI 3 و .NET 8**
 
-[⬇️ دانلود Pulse](https://dl1.wl-std.com/Pulse-2.1.1-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
+[⬇️ دانلود Pulse](https://dl1.wl-std.com/Pulse-2.2-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
 *متن‌باز — کد را بخوانید، بررسی کنید و خودتان بیلد بگیرید.*
 
@@ -134,6 +137,9 @@ This will:
   - جستجو، مرتب‌سازی، فیلتر پیشرفته، کپی جزئیات، **خروجی CSV**
 - **برنامه‌های استارتاپ** — روشن/خاموش با تخمین تأثیر روی بوت و آیکون واقعی برنامه‌ها
 - **سرویس‌ها** — مدیریت سرویس‌های ویندوز
+- **بهینه‌ساز حافظه** — گیج زنده‌ی رم، خالی کردن Working Set پردازه‌ها و پاک کردن Standby List (ادمین)
+- **اتصال‌های شبکه** — همه‌ی اتصال‌های TCP/UDP و پورت‌های باز همراه با پردازه‌ی مالک، بروزرسانی زنده، جستجو و بستن پردازه
+- **آزادساز فایل** — فایل یا پوشه را بکشید تا ببینید چه پردازه‌ای قفلش کرده و همان‌جا آزادش کنید
 - **ویجت دسکتاپ** — پنجره‌ی کوچک همیشه-رو با گراف زنده‌ی CPU / رم / GPU
 - **سیستم تری** — mini-گراف زنده در تری، شخصی‌سازی کامل هر آیکون (رنگ، پس‌زمینه، اندازه)
 - **آلارم مصرف** — نوتیفیکیشن ویندوز وقتی CPU / رم / دما از حد شما رد شود
@@ -151,7 +157,7 @@ winget install wl-std.pulse
 
 ### روش دوم — دانلود دستی
 
-۱. دانلود: **[Pulse-2.1.1-Setup.exe](https://dl1.wl-std.com/Pulse-2.1.1-Setup.exe)**
+۱. دانلود: **[Pulse-2.2-Setup.exe](https://dl1.wl-std.com/Pulse-2.2-Setup.exe)**
 ۲. اجرایش کنید — یک بار دسترسی ادمین می‌خواهد (برای Trust گواهی و نصب)
 ۳. تمام! **Pulse** در منوی استارت است و شورتکاتش روی دسکتاپ.
 

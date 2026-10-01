@@ -70,6 +70,22 @@
             <Setter Property="Padding" Value="34,12" />
             <Setter Property="FontSize" Value="15" />
         </Style>
+        <LinearGradientBrush x:Key="Danger" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FDA4AF" Offset="0" />
+            <GradientStop Color="#FB7185" Offset="0.5" />
+            <GradientStop Color="#E11D48" Offset="1" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="DangerText" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#FECDD3" Offset="0" />
+            <GradientStop Color="#FB7185" Offset="0.6" />
+            <GradientStop Color="#F472B6" Offset="1" />
+        </LinearGradientBrush>
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource GlassButton}">
+            <Setter Property="Background" Value="{StaticResource Danger}" />
+            <Setter Property="Foreground" Value="#1A0509" />
+            <Setter Property="Padding" Value="34,12" />
+            <Setter Property="FontSize" Value="15" />
+        </Style>
         <Style x:Key="CaptionButton" TargetType="Button">
             <Setter Property="Width" Value="40" />
             <Setter Property="Height" Value="32" />

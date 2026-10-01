@@ -49,6 +49,9 @@ namespace TaskManagerPro
                         "processes" => L10n.T("Processes"),
                         "startup" => L10n.T("Startup Apps"),
                         "services" => L10n.T("Services"),
+                        "memopt" => L10n.T("Memory Optimizer"),
+                        "network" => L10n.T("Network Connections"),
+                        "unlocker" => L10n.T("File Unlocker"),
                         _ => nvi.Content,
                     };
                 }
@@ -121,10 +124,19 @@ namespace TaskManagerPro
                 case "services":
                     ContentFrame.Navigate(typeof(ServicesPage), null, transition);
                     break;
+                case "memopt":
+                    ContentFrame.Navigate(typeof(MemoryOptimizerPage), null, transition);
+                    break;
+                case "network":
+                    ContentFrame.Navigate(typeof(NetworkConnectionsPage), null, transition);
+                    break;
+                case "unlocker":
+                    ContentFrame.Navigate(typeof(FileUnlockerPage), null, transition);
+                    break;
             }
         }
 
-        // ---- هات‌کی‌های Ctrl+1 تا Ctrl+5 برای جابه‌جایی بین تب‌ها ----
+        // ---- هات‌کی‌های Ctrl+1 تا Ctrl+8 برای جابه‌جایی بین تب‌ها ----
 
         private void SelectTab(int index)
         {
@@ -137,5 +149,8 @@ namespace TaskManagerPro
         private void Tab3_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(2); args.Handled = true; }
         private void Tab4_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(3); args.Handled = true; }
         private void Tab5_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(4); args.Handled = true; }
+        private void Tab6_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(5); args.Handled = true; }
+        private void Tab7_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(6); args.Handled = true; }
+        private void Tab8_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(7); args.Handled = true; }
     }
 }

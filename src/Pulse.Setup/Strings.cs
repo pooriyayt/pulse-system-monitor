@@ -33,6 +33,29 @@ namespace Pulse.Setup
         public static string StepApp => T("Installing Pulse (this may take a minute)…", "در حال نصب Pulse (ممکن است کمی طول بکشد)…");
         public static string StepShortcut => T("Creating shortcuts…", "در حال ساخت میانبر…");
         public static string StepDone => T("Done", "تمام شد");
+        public static string StepFinalizing => T("Done — please wait a moment while we finalize...", "تمام شد — چند لحظه صبر کنید تا نصب نهایی شود...");
+
+        public static string StepRegister => T("Registering in Programs and Features…", "در حال ثبت در Programs and Features…");
+
+        // ---- uninstaller ----
+        public static string UCaption => T("Uninstall Pulse", "حذف Pulse");
+        public static string UTitle => T("Uninstall Pulse?", "Pulse حذف شود؟");
+        public static string UText => T("Sorry to see you go. The following will be removed from this PC:",
+            "از رفتنت ناراحتیم! این موارد از کامپیوتر حذف می‌شوند:");
+        public static string UItem1 => T("✦  The Pulse app and its Start menu entry", "✦  برنامه‌ی Pulse و آیتم منوی استارت");
+        public static string UItem2 => T("✦  Settings, themes and performance history", "✦  تنظیمات، تم‌ها و تاریخچه‌ی عملکرد");
+        public static string UItem3 => T("✦  Desktop shortcut and startup entry", "✦  میانبر دسکتاپ و اجرای خودکار");
+        public static string UButton => T("Uninstall", "حذف");
+        public static string Uninstalling => T("Removing Pulse…", "در حال حذف Pulse…");
+        public static string UStepClose => T("Closing Pulse…", "در حال بستن Pulse…");
+        public static string UStepPackage => T("Removing the app…", "در حال حذف برنامه…");
+        public static string UStepShortcuts => T("Removing shortcuts…", "در حال حذف میانبرها…");
+        public static string UStepRegistry => T("Cleaning up…", "در حال پاک‌سازی…");
+        public static string UStepFinalizing => T("Done — please wait a moment while we finalize...", "تمام شد — چند لحظه صبر کنید تا حذف نهایی شود...");
+        public static string UDoneTitle => T("Pulse has been removed", "Pulse با موفقیت حذف شد");
+        public static string UDoneText => T("Thanks for using Pulse 💚\nYou can install it again anytime from pouriyaparniyan.ir",
+            "ممنون که از Pulse استفاده کردی 💚\nهر وقت خواستی می‌توانی دوباره از pouriyaparniyan.ir نصبش کنی");
+        public static string ErrUninstall => T("Uninstall failed.", "حذف ناموفق بود.");
 
         public static string ErrCert => T("Could not register the signing certificate.", "ثبت گواهی برنامه انجام نشد.");
         public static string ErrAdmin => T("Administrator access is required to install.", "برای نصب، دسترسی Administrator لازم است.");
