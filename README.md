@@ -95,8 +95,8 @@ redistribute it under your own name without permission. See [LICENSE](LICENSE).
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/pooriyayt/pulse.git
-cd pulse
+git clone https://github.com/pooriyayt/pulse-system-monitor.git
+cd pulse-system-monitor
 ```
 
 **2. Build & run (CLI)**
@@ -223,8 +223,8 @@ winget install wl-std.pulse
 **۱. کلون کردن مخزن**
 
 ```bash
-git clone https://github.com/pooriyayt/pulse.git
-cd pulse
+git clone https://github.com/pooriyayt/pulse-system-monitor.git
+cd pulse-system-monitor
 ```
 
 **۲. بیلد و اجرا از خط فرمان**
