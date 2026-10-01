@@ -2,6 +2,7 @@
     x:Class="TaskManagerPro.Views.NetworkConnectionsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:TaskManagerPro.Controls"
     xmlns:models="using:TaskManagerPro.Models"
     NavigationCacheMode="Required"
     KeyboardAcceleratorPlacementMode="Hidden">
@@ -45,7 +46,7 @@
         </MenuFlyout>
     </Page.Resources>
 
-    <Grid Padding="24,16,24,24" RowSpacing="12">
+    <Grid Padding="32,24,32,24" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -60,10 +61,9 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <FontIcon Glyph="&#xE968;" FontSize="24"
-                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+            <controls:IconBadge Glyph="&#xE968;" Size="44" VerticalAlignment="Center" />
             <TextBlock x:Name="PageTitle" Grid.Column="1" Text="Network Connections"
-                       Style="{StaticResource TitleTextBlockStyle}" />
+                       Style="{StaticResource PageTitleStyle}" VerticalAlignment="Center" />
             <TextBlock Grid.Column="2" VerticalAlignment="Center" Opacity="0.7"
                        Text="{x:Bind ViewModel.Summary, Mode=OneWay}" />
         </Grid>
@@ -102,7 +102,7 @@
                  IsClosable="True" />
 
         <!-- سرستون‌ها -->
-        <Grid Grid.Row="3" Padding="12,0" ColumnSpacing="12" Opacity="0.7">
+        <Grid Grid.Row="3" Padding="28,0" ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" MinWidth="160" />
                 <ColumnDefinition Width="70" />
@@ -111,15 +111,16 @@
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="120" />
             </Grid.ColumnDefinitions>
-            <TextBlock x:Name="HdrProcess" Text="Process" Style="{StaticResource CaptionTextBlockStyle}" />
-            <TextBlock x:Name="HdrPid" Grid.Column="1" Text="PID" Style="{StaticResource CaptionTextBlockStyle}" />
-            <TextBlock x:Name="HdrProto" Grid.Column="2" Text="Protocol" Style="{StaticResource CaptionTextBlockStyle}" />
-            <TextBlock x:Name="HdrLocal" Grid.Column="3" Text="Local address" Style="{StaticResource CaptionTextBlockStyle}" />
-            <TextBlock x:Name="HdrRemote" Grid.Column="4" Text="Remote address" Style="{StaticResource CaptionTextBlockStyle}" />
-            <TextBlock x:Name="HdrState" Grid.Column="5" Text="State" Style="{StaticResource CaptionTextBlockStyle}" />
+            <TextBlock x:Name="HdrProcess" Text="Process" Style="{StaticResource ColumnHeaderStyle}" />
+            <TextBlock x:Name="HdrPid" Grid.Column="1" Text="PID" Style="{StaticResource ColumnHeaderStyle}" />
+            <TextBlock x:Name="HdrProto" Grid.Column="2" Text="Protocol" Style="{StaticResource ColumnHeaderStyle}" />
+            <TextBlock x:Name="HdrLocal" Grid.Column="3" Text="Local address" Style="{StaticResource ColumnHeaderStyle}" />
+            <TextBlock x:Name="HdrRemote" Grid.Column="4" Text="Remote address" Style="{StaticResource ColumnHeaderStyle}" />
+            <TextBlock x:Name="HdrState" Grid.Column="5" Text="State" Style="{StaticResource ColumnHeaderStyle}" />
         </Grid>
 
-        <ListView x:Name="ConnList" Grid.Row="4"
+        <Border Grid.Row="4" Style="{StaticResource TableCardStyle}" Padding="6">
+        <ListView x:Name="ConnList"
                   SelectionMode="Single"
                   ItemsSource="{x:Bind ViewModel.Rows}">
             <ListView.ItemContainerTransitions>
@@ -161,5 +162,6 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+        </Border>
     </Grid>
 </Page>

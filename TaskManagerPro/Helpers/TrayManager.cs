@@ -44,6 +44,9 @@ namespace TaskManagerPro.Helpers
         private const uint MF_SEPARATOR = 0x800;
         private const int MENU_SHOW = 1;
         private const int MENU_EXIT = 2;
+        private const int MENU_WIDGET = 3;
+        private const int MENU_OPTIMIZE = 4;
+        private const uint MF_CHECKED = 0x8;
 
         private static readonly string[] MetricNames = { "CPU", "RAM", "GPU", "Disk", "Download", "Upload" };
 
@@ -182,9 +185,13 @@ namespace TaskManagerPro.Helpers
                     text = Math.Clamp(Math.Round(val), 0, 99).ToString("F0");
                 }
 
-                IntPtr hIcon = style == 2
-                    ? CreateGraphIcon(hist.ToArray(), color, isNet)
-                    : CreateTrayIcon(text, sub, color, style, scale);
+                double level = isNet ? Math.Min(val / Math.Max(1, hist.Max()), 1) : Math.Clamp(val / 100.0, 0, 1);
+                IntPtr hIcon = style switch
+                {
+                    2 => CreateGraphIcon(hist.ToArray(), color, isNet),
+                    3 => CreateRingIcon(text, sub, color, level, scale),
+                    _ => CreateTrayIcon(text, sub, color, style, scale, level),
+                };
 
                 string tip = isNet
                     ? $"{MetricNames[m]}: {FormatSpeedTip(val)}"
@@ -200,53 +207,110 @@ namespace TaskManagerPro.Helpers
         private static string FormatSpeedTip(double kbs) =>
             kbs >= 1024 ? $"{kbs / 1024.0:F1} MB/s" : $"{kbs:F0} KB/s";
 
-        /// <summary>ساخت آیکون 32×32 با متن زنده — دو استایل: بج رنگی یا فقط متن رنگی</summary>
-        private static IntPtr CreateTrayIcon(string text, string sub, Color color, int style, float scale)
+        private static Bitmap NewCanvas(out Graphics g)
         {
-            using var bmp = new Bitmap(32, 32);
-            using var g = Graphics.FromImage(bmp);
+            var bmp = new Bitmap(32, 32);
+            g = Graphics.FromImage(bmp);
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
             g.Clear(Color.Transparent);
+            return bmp;
+        }
 
-            Color textColor = Color.White;
-            if (style == 0)
+        private static Color Shade(Color c, float amount) => amount >= 0
+            ? Color.FromArgb(c.A, (int)(c.R + (255 - c.R) * amount), (int)(c.G + (255 - c.G) * amount), (int)(c.B + (255 - c.B) * amount))
+            : Color.FromArgb(c.A, (int)(c.R * (1 + amount)), (int)(c.G * (1 + amount)), (int)(c.B * (1 + amount)));
+
+        private static readonly StringFormat Centered = new()
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center,
+        };
+
+        /// <summary>متن با سایه‌ی نرم تا روی هر رنگ تسک‌باری خوانا بماند</summary>
+        private static void DrawText(Graphics g, string text, Font font, Color color, RectangleF rect, bool shadow)
+        {
+            if (shadow)
             {
-                // بج رنگی گردگوشه با متن سفید
-                using var path = RoundedRect(new RectangleF(0, 0, 31, 31), 9);
-                using var brush = new SolidBrush(color);
-                g.FillPath(brush, path);
+                using var sh = new SolidBrush(Color.FromArgb(110, 0, 0, 0));
+                g.DrawString(text, font, sh, new RectangleF(rect.X, rect.Y + 1, rect.Width, rect.Height), Centered);
             }
-            else
+            using var b = new SolidBrush(color);
+            g.DrawString(text, font, b, rect, Centered);
+        }
+
+        /// <summary>
+        /// آیکون 32×32 با عدد زنده — استایل ۰: بج شیشه‌ای گرادیانی با نوار مصرف پایین؛
+        /// استایل ۱: فقط عدد رنگی با سایه
+        /// </summary>
+        private static IntPtr CreateTrayIcon(string text, string sub, Color color, int style, float scale, double level)
+        {
+            using var bmp = NewCanvas(out var g);
+            using (g)
             {
-                // بدون پس‌زمینه — فقط متن با رنگ انتخابی
-                textColor = color;
+                Color textColor = Color.White;
+                if (style == 0)
+                {
+                    var rect = new RectangleF(0.5f, 0.5f, 31, 31);
+                    using (var path = RoundedRect(rect, 8))
+                    {
+                        using var grad = new LinearGradientBrush(new RectangleF(0, 0, 32, 32), Shade(color, 0.18f), Shade(color, -0.28f), 90f);
+                        g.FillPath(grad, path);
+                        // برق شیشه‌ای نیمه‌ی بالا
+                        using var gloss = new LinearGradientBrush(new RectangleF(0, 0, 32, 16), Color.FromArgb(70, 255, 255, 255), Color.FromArgb(0, 255, 255, 255), 90f);
+                        g.SetClip(path);
+                        g.FillRectangle(gloss, 0, 0, 32, 15);
+                        // نوار مصرف پایین
+                        using var track = new SolidBrush(Color.FromArgb(70, 0, 0, 0));
+                        g.FillRectangle(track, 0, 28, 32, 4);
+                        using var bar = new SolidBrush(Color.FromArgb(230, 255, 255, 255));
+                        g.FillRectangle(bar, 0, 28, (float)(32 * level), 4);
+                        g.ResetClip();
+                    }
+                }
+                else
+                {
+                    textColor = color;
+                }
+
+                if (!string.IsNullOrEmpty(sub))
+                {
+                    using var arrowBrush = new SolidBrush(textColor);
+                    DrawArrow(g, arrowBrush, sub == "down", 32f, 12f * Math.Clamp(scale, 0.75f, 1.5f));
+                    using var mainFont = new Font("Segoe UI", 15f * scale, FontStyle.Bold, GraphicsUnit.Pixel);
+                    DrawText(g, text, mainFont, textColor, new RectangleF(0, 10, 32, 19), true);
+                }
+                else
+                {
+                    float size = (text.Length >= 3 ? 13f : 18f) * scale;
+                    using var font = new Font("Segoe UI", size, FontStyle.Bold, GraphicsUnit.Pixel);
+                    DrawText(g, text, font, textColor, new RectangleF(0, style == 0 ? -1.5f : 0, 32, 32), true);
+                }
             }
+            return bmp.GetHicon();
+        }
 
-            var format = new StringFormat
+        /// <summary>استایل ۳: حلقه‌ی مصرف (مثل گیج) با عدد وسط</summary>
+        private static IntPtr CreateRingIcon(string text, string sub, Color color, double level, float scale)
+        {
+            using var bmp = NewCanvas(out var g);
+            using (g)
             {
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center,
-            };
-            using var textBrush = new SolidBrush(textColor);
-
-            if (!string.IsNullOrEmpty(sub))
-            {
-                // حالت سرعت شبکه: فلش توپر و بزرگ بالا + عدد MB/s پایین.
-                // فلش به‌جای کاراکتر یونیکد (که خیلی نازک بود) به‌صورت شکل توپر کشیده می‌شود
-                // تا در تسک‌بار واقعاً دیده شود.
-                DrawArrow(g, textBrush, sub == "down", 32f, 13f * Math.Clamp(scale, 0.75f, 1.5f));
-
-                using var mainFont = new Font("Segoe UI", 16f * scale, FontStyle.Bold, GraphicsUnit.Pixel);
-                g.DrawString(text, mainFont, textBrush, new RectangleF(0, 12, 32, 20), format);
-            }
-            else
-            {
-                float size = (text.Length >= 3 ? 13f : 17f) * scale;
+                var r = new RectangleF(2, 2, 28, 28);
+                using (var bg = new SolidBrush(Color.FromArgb(120, 10, 12, 16)))
+                    g.FillEllipse(bg, 1, 1, 30, 30);
+                using (var track = new Pen(Color.FromArgb(70, 255, 255, 255), 3.5f))
+                    g.DrawEllipse(track, r);
+                if (level > 0.005)
+                {
+                    using var arc = new Pen(color, 3.5f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+                    g.DrawArc(arc, r, -90, (float)(360 * Math.Min(level, 0.999)));
+                }
+                float size = (text.Length >= 3 ? 10.5f : 13.5f) * Math.Clamp(scale, 0.75f, 1.3f);
                 using var font = new Font("Segoe UI", size, FontStyle.Bold, GraphicsUnit.Pixel);
-                g.DrawString(text, font, textBrush, new RectangleF(0, 0, 32, 32), format);
+                DrawText(g, text, font, Color.White, new RectangleF(0, 0, 32, 32), false);
             }
-
             return bmp.GetHicon();
         }
 
@@ -295,46 +359,50 @@ namespace TaskManagerPro.Helpers
         /// <summary>آیکون 32×32 با mini-گراف زنده به‌جای عدد (استایل 2)</summary>
         private static IntPtr CreateGraphIcon(double[] values, Color color, bool autoScale)
         {
-            using var bmp = new Bitmap(32, 32);
-            using var g = Graphics.FromImage(bmp);
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.Clear(Color.Transparent);
-
-            // پس‌زمینه‌ی تیره‌ی نیمه‌شفاف تا گراف روی هر تسک‌باری دیده شود
-            using (var path = RoundedRect(new RectangleF(0, 0, 31, 31), 7))
-            using (var bg = new SolidBrush(Color.FromArgb(90, 0, 0, 0)))
-                g.FillPath(bg, path);
-
-            if (values.Length >= 2)
+            using var bmp = NewCanvas(out var g);
+            using (g)
             {
-                double max = 100;
-                if (autoScale)
+                using var path = RoundedRect(new RectangleF(0.5f, 0.5f, 31, 31), 8);
+                using (var bg = new LinearGradientBrush(new RectangleF(0, 0, 32, 32), Color.FromArgb(150, 24, 26, 32), Color.FromArgb(150, 8, 9, 12), 90f))
+                    g.FillPath(bg, path);
+                g.SetClip(path);
+
+                if (values.Length >= 2)
                 {
-                    max = 1;
-                    foreach (var v in values) if (v > max) max = v;
-                    max *= 1.2;
+                    double max = 100;
+                    if (autoScale)
+                    {
+                        max = 1;
+                        foreach (var v in values) if (v > max) max = v;
+                        max *= 1.2;
+                    }
+
+                    var pts = new PointF[values.Length];
+                    float stepX = 31f / (values.Length - 1);
+                    for (int i = 0; i < values.Length; i++)
+                    {
+                        float ratio = (float)Math.Min(Math.Max(values[i], 0) / max, 1.0);
+                        pts[i] = new PointF(i * stepX, 28 - ratio * 24);
+                    }
+
+                    var fill = new PointF[values.Length + 2];
+                    pts.CopyTo(fill, 0);
+                    fill[values.Length] = new PointF(32, 32);
+                    fill[values.Length + 1] = new PointF(0, 32);
+                    using (var fillBrush = new LinearGradientBrush(new RectangleF(0, 2, 32, 30), Color.FromArgb(150, color), Color.FromArgb(10, color), 90f))
+                        g.FillPolygon(fillBrush, fill);
+
+                    using (var glow = new Pen(Color.FromArgb(70, color), 4.5f) { LineJoin = LineJoin.Round })
+                        g.DrawLines(glow, pts);
+                    using (var pen = new Pen(Shade(color, 0.25f), 2f) { LineJoin = LineJoin.Round })
+                        g.DrawLines(pen, pts);
+
+                    var last = pts[^1];
+                    using var dot = new SolidBrush(Color.White);
+                    g.FillEllipse(dot, last.X - 3, last.Y - 2.5f, 5, 5);
                 }
-
-                var pts = new PointF[values.Length];
-                float stepX = 30f / (values.Length - 1);
-                for (int i = 0; i < values.Length; i++)
-                {
-                    float ratio = (float)Math.Min(Math.Max(values[i], 0) / max, 1.0);
-                    pts[i] = new PointF(1 + i * stepX, 29 - ratio * 26);
-                }
-
-                // ناحیه‌ی پرشده‌ی محو زیر خط
-                var fill = new PointF[values.Length + 2];
-                pts.CopyTo(fill, 0);
-                fill[values.Length] = new PointF(31, 31);
-                fill[values.Length + 1] = new PointF(1, 31);
-                using (var fillBrush = new SolidBrush(Color.FromArgb(70, color)))
-                    g.FillPolygon(fillBrush, fill);
-
-                using var pen = new Pen(color, 2f);
-                g.DrawLines(pen, pts);
+                g.ResetClip();
             }
-
             return bmp.GetHicon();
         }
 
@@ -456,6 +524,9 @@ namespace TaskManagerPro.Helpers
             IntPtr menu = CreatePopupMenu();
             AppendMenuW(menu, MF_STRING, (UIntPtr)MENU_SHOW, L10n.T("Show Pulse"));
             AppendMenuW(menu, MF_SEPARATOR, UIntPtr.Zero, null);
+            AppendMenuW(menu, MF_STRING | (AppSettings.WidgetEnabled ? MF_CHECKED : 0), (UIntPtr)MENU_WIDGET, L10n.T("Desktop widget"));
+            AppendMenuW(menu, MF_STRING, (UIntPtr)MENU_OPTIMIZE, L10n.T("Free up memory now"));
+            AppendMenuW(menu, MF_SEPARATOR, UIntPtr.Zero, null);
             AppendMenuW(menu, MF_STRING, (UIntPtr)MENU_EXIT, L10n.T("Exit"));
 
             GetCursorPos(out POINT pt);
@@ -465,6 +536,12 @@ namespace TaskManagerPro.Helpers
 
             if (cmd == MENU_SHOW) ShowWindowNow();
             else if (cmd == MENU_EXIT) ExitApp();
+            else if (cmd == MENU_WIDGET) AppSettings.WidgetEnabled = !AppSettings.WidgetEnabled;
+            else if (cmd == MENU_OPTIMIZE)
+                _ = System.Threading.Tasks.Task.Run(() =>
+                {
+                    try { Services.MemoryOptimizerService.Optimize(true, Services.MemoryOptimizerService.CanPurgeStandby); } catch { }
+                });
         }
 
         private static void ExitApp()

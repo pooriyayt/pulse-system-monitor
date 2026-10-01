@@ -1,0 +1,159 @@
+﻿using System;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media.Animation;
+using TaskManagerPro.Helpers;
+using TaskManagerPro.Classic.Views;
+
+namespace TaskManagerPro.Classic
+{
+    public sealed partial class ClassicMainWindow : Window
+    {
+        public ClassicMainWindow()
+        {
+            this.InitializeComponent();
+
+            // پس‌زمینه‌ی پیش‌فرض: Mica (تم نهایی را ThemeManager اعمال می‌کند)
+            this.SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
+
+            // نوار عنوان سفارشی
+            this.ExtendsContentIntoTitleBar = true;
+            this.SetTitleBar(AppTitleBar);
+
+            this.Title = "Pulse";
+
+            // آیکون تسک‌بار و نوار عنوان (WinUI 3 خودش از پکیج نمی‌گیرد)
+            try
+            {
+                this.AppWindow.SetIcon(
+                    System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico"));
+            }
+            catch { }
+
+            ApplyL10n();
+            AppSettings.LanguageChanged += ApplyL10n;
+        }
+
+        /// <summary>ترجمه‌ی آیتم‌های ناوبری و اعمال جهت متن</summary>
+        private void ApplyL10n()
+        {
+            foreach (var item in NavView.MenuItems)
+            {
+                if (item is NavigationViewItem nvi && nvi.Tag is string tag)
+                {
+                    nvi.Content = tag switch
+                    {
+                        "overview" => L10n.T("Overview"),
+                        "performance" => L10n.T("Performance"),
+                        "processes" => L10n.T("Processes"),
+                        "startup" => L10n.T("Startup Apps"),
+                        "services" => L10n.T("Services"),
+                        "memopt" => L10n.T("Memory Optimizer"),
+                        "network" => L10n.T("Network Connections"),
+                        "unlocker" => L10n.T("File Unlocker"),
+                        _ => nvi.Content,
+                    };
+                }
+            }
+            if (NavView.SettingsItem is NavigationViewItem settingsNvi)
+                settingsNvi.Content = L10n.T("Settings");
+            L10n.ApplyDirection(this);
+        }
+
+        // وقتی Sidebar برای اولین بار بارگذاری شد، صفحه‌ی Overview را باز کن.
+        private void NavView_Loaded(object sender, RoutedEventArgs e)
+        {
+            NavView.SelectedItem = NavView.MenuItems[0];
+            ContentFrame.Navigate(typeof(OverviewPage));
+
+            NavView.PaneOpening += (_, _) => AnimatePane(NavView.CompactPaneLength, 220, EasingMode.EaseOut);
+            NavView.PaneClosing += (_, _) => AnimatePane(220, NavView.CompactPaneLength, EasingMode.EaseIn);
+        }
+
+        private Storyboard? _paneAnim;
+
+        private void AnimatePane(double from, double to, EasingMode ease)
+        {
+            _paneAnim?.Stop();
+            // اگر انیمیشن نیمه‌کاره قطع شود، طول پنل باید همیشه به ۲۲۰ برگردد
+            // (مقدار OpenPaneLength هرگز نباید روی عرض فشرده بماند، وگرنه آیکون‌ها غیب می‌شوند).
+            NavView.OpenPaneLength = 220;
+            var anim = new DoubleAnimation
+            {
+                From = from,
+                To = to,
+                Duration = new Duration(TimeSpan.FromMilliseconds(280)),
+                EasingFunction = new CubicEase { EasingMode = ease },
+            };
+            Storyboard.SetTarget(anim, NavView);
+            Storyboard.SetTargetProperty(anim, "OpenPaneLength");
+            _paneAnim = new Storyboard();
+            _paneAnim.Children.Add(anim);
+            _paneAnim.Completed += (_, _) => NavView.OpenPaneLength = 220;
+            _paneAnim.Begin();
+        }
+
+        // وقتی کاربر روی یکی از آیتم‌های Sidebar کلیک کرد:
+        private void NavView_SelectionChanged(
+            NavigationView sender,
+            NavigationViewSelectionChangedEventArgs args)
+        {
+            var transition = new DrillInNavigationTransitionInfo();
+
+            if (args.IsSettingsSelected)
+            {
+                ContentFrame.Navigate(typeof(SettingsPage), null, transition);
+                return;
+            }
+
+            var selectedItem = args.SelectedItem as NavigationViewItem;
+            if (selectedItem == null) return;
+
+            switch (selectedItem.Tag as string)
+            {
+                case "overview":
+                    ContentFrame.Navigate(typeof(OverviewPage), null, transition);
+                    break;
+                case "performance":
+                    ContentFrame.Navigate(typeof(PerformancePage), null, transition);
+                    break;
+                case "processes":
+                    ContentFrame.Navigate(typeof(ProcessesPage), null, transition);
+                    break;
+                case "startup":
+                    ContentFrame.Navigate(typeof(StartupPage), null, transition);
+                    break;
+                case "services":
+                    ContentFrame.Navigate(typeof(ServicesPage), null, transition);
+                    break;
+                case "memopt":
+                    ContentFrame.Navigate(typeof(MemoryOptimizerPage), null, transition);
+                    break;
+                case "network":
+                    ContentFrame.Navigate(typeof(NetworkConnectionsPage), null, transition);
+                    break;
+                case "unlocker":
+                    ContentFrame.Navigate(typeof(FileUnlockerPage), null, transition);
+                    break;
+            }
+        }
+
+        // ---- هات‌کی‌های Ctrl+1 تا Ctrl+8 برای جابه‌جایی بین تب‌ها ----
+
+        private void SelectTab(int index)
+        {
+            if (index >= 0 && index < NavView.MenuItems.Count)
+                NavView.SelectedItem = NavView.MenuItems[index];
+        }
+
+        private void Tab1_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(0); args.Handled = true; }
+        private void Tab2_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(1); args.Handled = true; }
+        private void Tab3_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(2); args.Handled = true; }
+        private void Tab4_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(3); args.Handled = true; }
+        private void Tab5_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(4); args.Handled = true; }
+        private void Tab6_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(5); args.Handled = true; }
+        private void Tab7_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(6); args.Handled = true; }
+        private void Tab8_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args) { SelectTab(7); args.Handled = true; }
+    }
+}

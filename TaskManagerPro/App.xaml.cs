@@ -1,3 +1,4 @@
+﻿using System;
 ﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using TaskManagerPro.Helpers;
@@ -23,6 +24,18 @@ namespace TaskManagerPro
         {
             this.InitializeComponent();
 
+            // ثبت خطاهای پیش‌بینی‌نشده‌ی UI در فایل لاگ (برای عیب‌یابی)
+            UnhandledException += (_, e) =>
+            {
+                try
+                {
+                    System.IO.File.AppendAllText(
+                        System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Pulse-crash.log"),
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {e.Exception}{Environment.NewLine}{Environment.NewLine}");
+                }
+                catch { }
+            };
+
             // خواندن تنظیمات ذخیره‌شده (تم، رنگ گراف، سرعت رفرش، Tray و ...)
             AppSettings.Load();
         }
@@ -32,7 +45,20 @@ namespace TaskManagerPro
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
-            MainAppWindow = new MainWindow();
+            // ظاهر رابط: جدید (مدرن) یا کلاسیک — از تنظیمات
+            AppSettings.ModernUi = AppSettings.UiStyle == 0;
+            if (AppSettings.ModernUi)
+            {
+                // گوشه‌های گردتر فقط در ظاهر جدید
+                Resources["ControlCornerRadius"] = new CornerRadius(10);
+                Resources["OverlayCornerRadius"] = new CornerRadius(16);
+                Resources["ListViewItemMinHeight"] = 44.0;
+                MainAppWindow = new MainWindow();
+            }
+            else
+            {
+                MainAppWindow = new Classic.ClassicMainWindow();
+            }
             MainAppWindow.Activate();
 
             // اگر ویندوز برنامه را هنگام بوت اجرا کرده و Tray فعال است،
@@ -54,6 +80,7 @@ namespace TaskManagerPro
 
             // نمونه‌برداری سراسری تاریخچه (گراف ۱۰ دقیقه/۱ ساعت + آلارم مصرف + mini-گراف Tray)
             Monitoring.HistoryStore.Start(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
+            Services.AutoOptimizer.Start();
 
             // شروع زودهنگام سنسورهای سخت‌افزار تا دمای CPU از همان ابتدا نمایش داده شود
             _ = System.Threading.Tasks.Task.Run(SensorMonitor.Start);
@@ -123,7 +150,10 @@ namespace TaskManagerPro
                     try
                     {
                         if (MainAppWindow?.Content is FrameworkElement root)
-                            await ShowUpdatePromptAsync(info, root);
+                        {
+                            if (AppSettings.ModernUi) await UpdateDialog.ShowAsync(info, root.XamlRoot);
+                            else await ShowUpdatePromptAsync(info, root);
+                        }
                     }
                     catch { }
                 });

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
@@ -20,6 +20,13 @@ namespace TaskManagerPro.Services
 
         /// <summary>آیا پاک‌سازی Standby List انجام شد؟ (نیاز به Administrator)</summary>
         public bool StandbyPurged { get; init; }
+
+        /// <summary>حافظه‌ی آزاد قبل و بعد (بایت) — معیار واقعی و صادقانه‌ی «چقدر آزاد شد»</summary>
+        public long AvailableBefore { get; init; }
+        public long AvailableAfter { get; init; }
+
+        /// <summary>افزایش واقعی حافظه‌ی آزاد</summary>
+        public long RealFreedBytes => Math.Max(0, AvailableAfter - AvailableBefore);
     }
 
     /// <summary>
@@ -29,6 +36,14 @@ namespace TaskManagerPro.Services
     /// </summary>
     public static class MemoryOptimizerService
     {
+        private static long _sessionFreed;
+
+        /// <summary>
+        /// مجموع واقعی رم آزادشده از شروع برنامه (همه‌ی پاک‌سازی‌ها: دکمه، خودکار، منوی Tray).
+        /// معیار: کاهش واقعی «رم در حال استفاده» = افزایش Available ویندوز قبل/بعد هر پاک‌سازی.
+        /// </summary>
+        public static long SessionFreedBytes => System.Threading.Interlocked.Read(ref _sessionFreed);
+
         public static MemoryOptimizeResult Optimize(bool trimWorkingSets = true, bool purgeStandby = true)
         {
             // SeDebugPrivilege دسترسی به پردازه‌های بیشتری می‌دهد (اگر ادمین باشیم)
@@ -36,6 +51,7 @@ namespace TaskManagerPro.Services
             TryEnablePrivilege("SeIncreaseQuotaPrivilege");
             bool canPurge = purgeStandby && TryEnablePrivilege("SeProfileSingleProcessPrivilege");
 
+            long availBefore = (long)GetPhysicalMemory().available;
             long standbyBefore = canPurge ? QueryStandbyBytes() : -1;
 
             // اول Working Setها خالی شوند (صفحات به Standby/Modified می‌روند) و بعد Standby پاک شود
@@ -45,6 +61,13 @@ namespace TaskManagerPro.Services
             long standbyFreed = -1;
             if (canPurge)
             {
+                // صفحات Modified اول روی دیسک نوشته شوند تا به Standby بیایند و قابل آزاد شدن باشند
+                int flush = MemoryFlushModifiedList;
+                NtSetSystemInformation(SystemMemoryListInformation, ref flush, sizeof(int));
+
+                // کش فایل سیستم هم کوچک شود (نیاز به SeIncreaseQuotaPrivilege)
+                try { SetSystemFileCacheSize(new IntPtr(-1), new IntPtr(-1), 0); } catch { }
+
                 long standbyMid = QueryStandbyBytes();
                 int command = MemoryPurgeStandbyList;
                 int status = NtSetSystemInformation(SystemMemoryListInformation, ref command, sizeof(int));
@@ -56,8 +79,17 @@ namespace TaskManagerPro.Services
                     standbyFreed = Math.Max(0, reference - standbyAfter);
             }
 
+            // کمی صبر تا شمارنده‌ی حافظه‌ی آزاد به‌روز شود
+            System.Threading.Thread.Sleep(400);
+            long availAfter = (long)GetPhysicalMemory().available;
+
+            if (availAfter > availBefore)
+                System.Threading.Interlocked.Add(ref _sessionFreed, availAfter - availBefore);
+
             return new MemoryOptimizeResult
             {
+                AvailableBefore = availBefore,
+                AvailableAfter = availAfter,
                 StandbyFreedBytes = standbyFreed,
                 StandbyPurged = purged,
                 WorkingSetTrimmedBytes = trimmed,
@@ -171,6 +203,37 @@ namespace TaskManagerPro.Services
 
         private const int SystemMemoryListInformation = 80;
         private const int MemoryPurgeStandbyList = 4;
+        private const int MemoryFlushModifiedList = 3;
+
+        /// <summary>[ترد پس‌زمینه] پرمصرف‌ترین پردازه‌ها از نظر حافظه (نام، بایت)</summary>
+        public static System.Collections.Generic.List<(string Name, long Bytes)> TopConsumers(int count)
+        {
+            var list = new System.Collections.Generic.Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+            foreach (var p in Process.GetProcesses())
+            {
+                using (p)
+                {
+                    try
+                    {
+                        if (p.Id <= 4) continue;
+                        // گروه‌بندی بر اساس نام (مثل chrome با چندین پردازه)
+                        string pn = ProcessPathResolver.Display(p.ProcessName);
+                        list.TryGetValue(pn, out var cur);
+                        list[pn] = cur + p.WorkingSet64;
+                    }
+                    catch { }
+                }
+            }
+            var result = new System.Collections.Generic.List<(string, long)>();
+            foreach (var kv in list) result.Add((kv.Key, kv.Value));
+            result.Sort((a, b) => b.Item2.CompareTo(a.Item2));
+            if (result.Count > count) result.RemoveRange(count, result.Count - count);
+            return result;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetSystemFileCacheSize(IntPtr minimum, IntPtr maximum, uint flags);
 
         private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
         private const uint PROCESS_SET_QUOTA = 0x0100;

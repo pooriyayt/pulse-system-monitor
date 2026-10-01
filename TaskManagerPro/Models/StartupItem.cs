@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
@@ -82,5 +82,20 @@ namespace TaskManagerPro.Models
             1 => Helpers.L10n.T("Low"),
             _ => Helpers.L10n.T("Not measured"),
         };
+
+        /// <summary>برچسب کامل و واضح: «تأثیر روی بوت: زیاد»</summary>
+        public string ImpactLabel => string.Format(Helpers.L10n.T("Est. boot impact: {0}"), ImpactText);
+
+        /// <summary>توضیح تولتیپ</summary>
+        public string ImpactTip => Helpers.L10n.T("Estimated from the size of the app's program files: bigger apps usually take longer to load when Windows starts.");
+
+        /// <summary>رنگ نشانگر تأثیر (قرمز / نارنجی / سبز / خاکستری)</summary>
+        public Microsoft.UI.Xaml.Media.Brush ImpactBrush => new Microsoft.UI.Xaml.Media.SolidColorBrush(Impact switch
+        {
+            3 => Controls.LoadPalette.Danger,
+            2 => Controls.LoadPalette.Warn,
+            1 => Controls.LoadPalette.Ok,
+            _ => Windows.UI.Color.FromArgb(255, 0x8A, 0x8A, 0x8A),
+        });
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -33,15 +33,19 @@ namespace TaskManagerPro.Services
         }
 
         /// <summary>نام نمایشی پردازه (بدون .exe)</summary>
+        /// <summary>نام نمایشی: خود برنامه (فایل TaskManagerPro.exe) همیشه «Pulse» نامیده می‌شود</summary>
+        public static string Display(string exeName) =>
+            exeName.Equals("TaskManagerPro", StringComparison.OrdinalIgnoreCase) ? "Pulse" : exeName;
+
         public static string GetName(int pid, string? path)
         {
             if (pid == 0) return "System Idle Process";
             if (pid == 4) return "System";
-            if (!string.IsNullOrEmpty(path)) return Path.GetFileNameWithoutExtension(path);
+            if (!string.IsNullOrEmpty(path)) return Display(Path.GetFileNameWithoutExtension(path));
             try
             {
                 using var p = System.Diagnostics.Process.GetProcessById(pid);
-                return p.ProcessName;
+                return Display(p.ProcessName);
             }
             catch
             {

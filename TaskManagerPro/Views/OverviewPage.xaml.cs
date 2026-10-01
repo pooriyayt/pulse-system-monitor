@@ -1,8 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using TaskManagerPro.Controls;
 using TaskManagerPro.Helpers;
 using TaskManagerPro.Monitoring;
 
@@ -37,6 +39,11 @@ namespace TaskManagerPro.Views
             NetDownLabel.Text = L10n.T("Download");
             NetUpLabel.Text = L10n.T("Upload");
             HardwareHeader.Text = L10n.T("Hardware");
+            CpuTileLabel.Text = "CPU";
+            MemTileLabel.Text = L10n.T("Memory").ToUpperInvariant();
+            GpuTileLabel.Text = "GPU";
+            DiskTileLabel.Text = L10n.T("Disk").ToUpperInvariant();
+            GreetingText.Text = L10n.T("Your system at a glance");
             LoadingText.Text = L10n.T("Reading system counters...");
         }
 
@@ -121,11 +128,13 @@ namespace TaskManagerPro.Views
 
         private void UpdateUi(SystemSnapshot s)
         {
+            UpdateTiles(s);
+
             // CPU (درصد + سرعت لحظه‌ای + دما اگر در دسترس باشد)
             CpuGraph.AddValue(s.CpuTotal);
             var cpuLine = $"{s.CpuTotal:F0}%";
-            if (s.CpuMhz > 0) cpuLine += $"   |   {s.CpuMhz / 1000.0:F2} GHz";
-            if (s.CpuTempC > 0) cpuLine += $"   |   {s.CpuTempC:F0} °C";
+            if (s.CpuMhz > 0) cpuLine += $"   ·   {s.CpuMhz / 1000.0:F2} GHz";
+            if (s.CpuTempC > 0) cpuLine += $"   ·   {s.CpuTempC:F0} °C";
             CpuText.Text = cpuLine;
 
             if (_coreBars.Count == 0 && s.CpuCores.Length > 0)
@@ -141,6 +150,12 @@ namespace TaskManagerPro.Views
             MemGraph.AddValue(s.MemPercent);
             MemText.Text = $"{s.MemUsedGB:F1} / {s.MemTotalGB:F1} GB  ({s.MemPercent:F0}%)";
             PageFileText.Text = string.Format(L10n.T("Page File: {0}% used"), (int)s.PageFilePercent);
+            double used = Math.Clamp(s.MemPercent, 0, 100);
+            MemUsedCol.Width = new GridLength(used, GridUnitType.Star);
+            MemFreeCol.Width = new GridLength(100 - used, GridUnitType.Star);
+            MemUsedLegend.Text = $"{L10n.T("In use")}  {s.MemUsedGB:F1} GB";
+            MemFreeLegend.Text = $"{L10n.T("Available")}  {s.MemAvailableGB:F1} GB";
+            UpdateRamDetails();
 
             // GPU ها — همه‌ی کارت‌ها به تفکیک (شامل GPU داخلی Intel)
             if (s.Gpus.Count > 0)
@@ -150,8 +165,8 @@ namespace TaskManagerPro.Views
                 var lines = new List<string>();
                 foreach (var g in s.Gpus)
                 {
-                    string temp = s.GpuTempC > 0 ? $"   |   {s.GpuTempC:F0} °C" : "";
-                    lines.Add($"{g.Name}:  {g.UsagePercent:F0}%   |   VRAM: {FormatMB(g.DedicatedMB)}{temp}");
+                    string temp = s.GpuTempC > 0 ? $"   ·   {s.GpuTempC:F0} °C" : "";
+                    lines.Add($"{g.Name}:  {g.UsagePercent:F0}%   ·   VRAM: {FormatMB(g.DedicatedMB)}{temp}");
                 }
                 GpuText.Text = string.Join("\n", lines);
             }
@@ -162,7 +177,7 @@ namespace TaskManagerPro.Views
 
             // Disk
             DiskGraph.AddValue(s.DiskPercent);
-            DiskText.Text = $"{s.DiskPercent:F0}%   |   {L10n.T("Read")}: {s.DiskReadMBs:F1} MB/s   |   {L10n.T("Write")}: {s.DiskWriteMBs:F1} MB/s";
+            DiskText.Text = $"{s.DiskPercent:F0}%   ·   {L10n.T("Read")}: {s.DiskReadMBs:F1} MB/s   ·   {L10n.T("Write")}: {s.DiskWriteMBs:F1} MB/s";
 
             // Network
             NetDownGraph.AddValue(s.NetRecvKBs);
@@ -177,20 +192,123 @@ namespace TaskManagerPro.Views
         private static string FormatMB(double mb) =>
             mb >= 1024 ? $"{mb / 1024.0:F1} GB" : $"{mb:F0} MB";
 
+        private Monitoring.RamInfo? _ramInfo;
+        private bool _ramLoading;
+        private long _compressed = -1;
+        private int _ramTick;
+
+        /// <summary>جزئیات رم: مشخصات ثابت (یک بار، پس‌زمینه) + آمار زنده‌ی Commit / کش / فشرده</summary>
+        private void UpdateRamDetails()
+        {
+            if (_ramInfo == null && !_ramLoading)
+            {
+                _ramLoading = true;
+                _ = Task.Run(Monitoring.MemoryHardware.GetInfo).ContinueWith(t =>
+                    DispatcherQueue.TryEnqueue(() => { _ramInfo = t.Result; ShowRamStatic(); }),
+                    TaskScheduler.Default);
+            }
+
+            RamSpeedLabel.Text = L10n.T("Speed");
+            RamSlotsLabel.Text = L10n.T("Slots used");
+            RamFormLabel.Text = L10n.T("Form factor");
+            RamCommitLabel.Text = L10n.T("Committed");
+            RamCachedLabel.Text = L10n.T("Cached");
+            RamCompressedLabel.Text = L10n.T("Compressed");
+
+            var mc = Monitoring.MemoryHardware.GetCounters();
+            if (mc is { } c)
+            {
+                RamCommitValue.Text = $"{c.CommitTotal / 1073741824.0:F1} / {c.CommitLimit / 1073741824.0:F1} GB";
+                RamCachedValue.Text = $"{c.SystemCache / 1073741824.0:F1} GB";
+            }
+            if (_ramTick++ % 3 == 0)
+                _ = Task.Run(Monitoring.MemoryHardware.GetCompressedBytes).ContinueWith(t =>
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        _compressed = t.Result;
+                        RamCompressedValue.Text = _compressed >= 0 ? $"{_compressed / 1048576.0:F0} MB" : "—";
+                    }), TaskScheduler.Default);
+        }
+
+        private void ShowRamStatic()
+        {
+            var r = _ramInfo;
+            if (r == null) return;
+            RamSpeedValue.Text = r.SpeedMHz > 0
+                ? (r.Type.Length > 0 ? $"{r.Type} · {r.SpeedMHz} MT/s" : $"{r.SpeedMHz} MT/s")
+                : (r.Type.Length > 0 ? r.Type : "—");
+            RamSlotsValue.Text = r.TotalSlots > 0 ? string.Format(L10n.T("{0} of {1}"), r.UsedSlots, r.TotalSlots) : "—";
+            RamFormValue.Text = r.FormFactor.Length > 0 ? r.FormFactor : "—";
+        }
+
         private void BuildCoreBars(int count)
         {
             for (int i = 0; i < count; i++)
             {
-                var label = new TextBlock { Text = $"{L10n.T("Core")} {i}", FontSize = 12, Opacity = 0.8 };
-                var bar = new ProgressBar { Maximum = 100, Margin = new Thickness(0, 2, 16, 0) };
+                var label = new TextBlock
+                {
+                    Text = $"{L10n.T("Core")} {i}",
+                    FontSize = 11,
+                    Foreground = (Brush)Application.Current.Resources["PulseMutedTextBrush"],
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                };
+                var bar = new ProgressBar { Maximum = 100, Margin = new Thickness(0, 4, 0, 0), MinHeight = 4 };
 
-                var panel = new StackPanel();
+                var panel = new StackPanel { Margin = new Thickness(0, 0, 12, 0) };
                 panel.Children.Add(label);
                 panel.Children.Add(bar);
 
                 CoresPanel.Children.Add(panel);
                 _coreBars.Add(bar);
                 _coreLabels.Add(label);
+            }
+        }
+
+        /// <summary>کاشی‌های بالای داشبورد + وضعیت کلی سیستم</summary>
+        private void UpdateTiles(SystemSnapshot s)
+        {
+            CpuBig.Text = $"{s.CpuTotal:F0}%";
+            CpuRing.Value = s.CpuTotal;
+            var cpuSub = new List<string>();
+            if (s.CpuMhz > 0) cpuSub.Add($"{s.CpuMhz / 1000.0:F2} GHz");
+            if (s.CpuTempC > 0) cpuSub.Add($"{s.CpuTempC:F0} °C");
+            if (cpuSub.Count == 0) cpuSub.Add(LoadPalette.LabelFor(s.CpuTotal));
+            CpuSub.Text = string.Join("  ·  ", cpuSub);
+
+            MemBig.Text = $"{s.MemPercent:F0}%";
+            MemRing.Value = s.MemPercent;
+            MemSub.Text = $"{s.MemUsedGB:F1} / {s.MemTotalGB:F1} GB";
+
+            if (s.Gpus.Count > 0 && s.GpuPercent >= 0)
+            {
+                GpuBig.Text = $"{s.GpuPercent:F0}%";
+                GpuRing.Value = s.GpuPercent;
+                GpuSub.Text = s.GpuTempC > 0
+                    ? $"{s.GpuTempC:F0} °C  ·  {LoadPalette.LabelFor(s.GpuPercent)}"
+                    : LoadPalette.LabelFor(s.GpuPercent);
+            }
+            else
+            {
+                GpuBig.Text = "—";
+                GpuSub.Text = L10n.T("Not available");
+            }
+
+            DiskBig.Text = $"{s.DiskPercent:F0}%";
+            DiskRing.Value = s.DiskPercent;
+            DiskSub.Text = $"R {s.DiskReadMBs:F1}  ·  W {s.DiskWriteMBs:F1} MB/s";
+
+            // وضعیت کلی: بدترین مقدار بین CPU / RAM / دیسک
+            double worst = Math.Max(s.CpuTotal, Math.Max(s.MemPercent, s.DiskPercent));
+            HealthDot.Fill = LoadPalette.BrushFor(worst);
+            HealthText.Text = worst >= 85 ? L10n.T("Under heavy load")
+                : worst >= 60 ? L10n.T("Working hard")
+                : L10n.T("System healthy");
+
+            if (s.UptimeSeconds > 0)
+            {
+                var up = TimeSpan.FromSeconds(s.UptimeSeconds);
+                UptimeText.Text = "·  " + string.Format(L10n.T("Up {0}"),
+                    up.TotalDays >= 1 ? $"{(int)up.TotalDays}d {up.Hours}h" : $"{up.Hours}h {up.Minutes}m");
             }
         }
     }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
@@ -36,6 +36,10 @@ namespace TaskManagerPro.Views
         private void ApplyL10n()
         {
             StartupTitle.Text = L10n.T("Startup Apps");
+            HdrApp.Text = L10n.T("App");
+            HdrSource.Text = L10n.T("Registered in");
+            HdrImpact.Text = L10n.T("Boot impact");
+            HdrEnabled.Text = L10n.T("Enabled");
             RefreshBtnLabel.Text = L10n.T("Refresh");
             StartupSubtitle.Text = L10n.T("Programs that start automatically with Windows");
             PulseStartupToggle.Header = L10n.T("Start Pulse automatically when Windows starts");

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -94,10 +94,48 @@ namespace TaskManagerPro.Views
 
             Loaded += async (s, e) =>
             {
+                ApplyPendingSearch();
                 StartTimer();
                 await RefreshAsync();
             };
             Unloaded += (s, e) => _timer?.Stop();
+        }
+
+        // ---------- نام نمایشی پردازه‌ها (مثل Task Manager ویندوز: توضیحات فایل) ----------
+
+        private static readonly Dictionary<string, string> FriendlyCache = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// نام خوانا از FileDescription فایل اجرایی (مثلاً «Windows Explorer» به‌جای explorer).
+        /// خود برنامه — حتی نسخه‌های قدیمی‌تر که فایلشان TaskManagerPro.exe است — همیشه «Pulse» نامیده می‌شود.
+        /// </summary>
+        private static string FriendlyName(string exeName, string? path)
+        {
+            if (exeName.Equals("TaskManagerPro", StringComparison.OrdinalIgnoreCase)) return "Pulse";
+            if (string.IsNullOrEmpty(path)) return exeName;
+            lock (FriendlyCache)
+            {
+                if (FriendlyCache.TryGetValue(path, out var cached)) return cached;
+                string name = exeName;
+                try
+                {
+                    var d = System.Diagnostics.FileVersionInfo.GetVersionInfo(path).FileDescription?.Trim();
+                    if (!string.IsNullOrEmpty(d) && d.Length <= 60) name = d;
+                }
+                catch { }
+                FriendlyCache[path] = name;
+                return name;
+            }
+        }
+
+        /// <summary>متن جستجویی که از پالت فرمان (Ctrl+K) فرستاده شده</summary>
+        public static string? PendingSearch;
+
+        public void ApplyPendingSearch()
+        {
+            if (PendingSearch == null) return;
+            SearchBox.Text = PendingSearch;
+            PendingSearch = null;
         }
 
         private void StartTimer()
@@ -292,7 +330,8 @@ namespace TaskManagerPro.Views
                     _nodes[r.Pid] = n;
                 }
 
-                n.Name = r.Name;
+                n.ExeName = r.Name;
+                n.Name = FriendlyName(r.Name, r.Path);
                 n.Path = r.Path;
                 n.Category = Classify(r);
                 n.Cpu = r.CpuPercent;
@@ -341,6 +380,7 @@ namespace TaskManagerPro.Views
                 // جستجو: لیست تخت از همه‌ی پردازه‌های منطبق (همه جا پیدا می‌شود، نه فقط ریشه‌ها)
                 var matches = _nodes.Values
                     .Where(n => (n.Name.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                                  n.ExeName.Contains(q, StringComparison.OrdinalIgnoreCase) ||
                                  n.Pid.ToString().Contains(q)) && PassFilter(n))
                     .ToList();
                 SortList(matches, sort);
@@ -445,7 +485,7 @@ namespace TaskManagerPro.Views
             bool ok = _selected != null && !_selected.IsGroup;
             EndTaskBtn.IsEnabled = ok;
 
-            bool isExplorer = ok && string.Equals(_selected!.Name, "explorer", StringComparison.OrdinalIgnoreCase);
+            bool isExplorer = ok && string.Equals(_selected!.ExeName, "explorer", StringComparison.OrdinalIgnoreCase);
             EndTaskLabel.Text = isExplorer ? L10n.T("Restart") : L10n.T("End task");
             MenuEndTask.Text = isExplorer ? L10n.T("Restart") : L10n.T("End task");
         }
@@ -467,7 +507,7 @@ namespace TaskManagerPro.Views
 
             try
             {
-                if (string.Equals(n.Name, "explorer", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(n.ExeName, "explorer", StringComparison.OrdinalIgnoreCase))
                 {
                     // ری‌استارت اکسپلورر مثل Task Manager ویندوز
                     await Task.Run(() =>
@@ -805,6 +845,7 @@ namespace TaskManagerPro.Views
         /// <summary>\u062a\u0631\u062c\u0645\u0647\u200c\u06cc \u0645\u062a\u0646\u200c\u0647\u0627\u06cc \u062b\u0627\u0628\u062a \u0635\u0641\u062d\u0647</summary>
         private void ApplyL10n()
         {
+            PageTitle.Text = L10n.T("Processes");
             SearchBox.PlaceholderText = L10n.T("Search processes  (Ctrl+F)");
             MenuSuspend.Text = L10n.T("Suspend");
             MenuResume.Text = L10n.T("Resume");

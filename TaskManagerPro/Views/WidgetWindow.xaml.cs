@@ -1,5 +1,4 @@
-using System;
-using Microsoft.UI.Dispatching;
+﻿using System;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using TaskManagerPro.Helpers;
@@ -8,14 +7,11 @@ using TaskManagerPro.Monitoring;
 namespace TaskManagerPro.Views
 {
     /// <summary>
-    /// ویجت شناور دسکتاپ: پنجره‌ی کوچک always-on-top با گراف زنده‌ی CPU / RAM / GPU.
-    /// با گرفتن نوار بالایی جابه‌جا می‌شود؛ دکمه‌ی × فقط ویجت را خاموش می‌کند.
+    /// ویجت شناور دسکتاپ: کارت شیشه‌ای always-on-top با گیج و گراف زنده‌ی CPU / RAM / GPU،
+    /// سرعت شبکه و دمای CPU. با گرفتن نوار بالایی جابه‌جا می‌شود؛ دکمه‌ی × ویجت را خاموش می‌کند.
     /// </summary>
     public sealed partial class WidgetWindow : Window
     {
-        private DispatcherQueueTimer? _timer;
-        private bool _busy;
-
         public WidgetWindow()
         {
             this.InitializeComponent();
@@ -25,7 +21,8 @@ namespace TaskManagerPro.Views
             this.SetTitleBar(DragBar);
 
             var aw = this.AppWindow;
-            aw.Resize(new Windows.Graphics.SizeInt32(340, 130));
+            double scale = GetDpiScale();
+            aw.Resize(new Windows.Graphics.SizeInt32((int)(380 * scale), (int)(232 * scale)));
             aw.IsShownInSwitchers = false;
             try { aw.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico")); } catch { }
 
@@ -38,42 +35,42 @@ namespace TaskManagerPro.Views
                 p.SetBorderAndTitleBar(true, false);
             }
 
-            _timer = DispatcherQueue.CreateTimer();
-            _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(AppSettings.RefreshIntervalMs, 1000));
-            _timer.Tick += (s, e) => Tick();
-            _timer.Start();
-
-            this.Closed += (s, e) =>
-            {
-                _timer?.Stop();
-                _timer = null;
-            };
-
-            Tick();
+            // داده از نمونه‌برداری سراسری (بدون خواندن دوباره‌ی شمارنده‌ها)
+            HistoryStore.Sampled += OnSampled;
+            this.Closed += (s, e) => HistoryStore.Sampled -= OnSampled;
+            if (HistoryStore.Latest is SystemSnapshot last) Show(last);
         }
 
-        private void Tick()
+        private double GetDpiScale()
         {
-            if (_busy) return;
-            _busy = true;
-            var dq = DispatcherQueue;
-            System.Threading.Tasks.Task.Run(() =>
-            {
-                SystemSnapshot? snap = null;
-                try { snap = SystemMonitor.Instance.Read(); } catch { }
-                dq.TryEnqueue(() =>
-                {
-                    _busy = false;
-                    if (snap == null) return;
-                    CpuGraph.AddValue(snap.CpuTotal);
-                    RamGraph.AddValue(snap.MemPercent);
-                    GpuGraph.AddValue(Math.Max(snap.GpuPercent, 0));
-                    CpuLabel.Text = $"CPU {snap.CpuTotal:F0}%";
-                    RamLabel.Text = $"RAM {snap.MemPercent:F0}%";
-                    GpuLabel.Text = snap.GpuPercent >= 0 ? $"GPU {snap.GpuPercent:F0}%" : "GPU —";
-                });
-            });
+            try { return GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(this)) / 96.0; }
+            catch { return 1.0; }
         }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern uint GetDpiForWindow(IntPtr hwnd);
+
+        private void OnSampled(SystemSnapshot s) => DispatcherQueue.TryEnqueue(() => Show(s));
+
+        private void Show(SystemSnapshot snap)
+        {
+            CpuRing.Value = snap.CpuTotal;
+            RamRing.Value = snap.MemPercent;
+            GpuRing.Value = Math.Max(snap.GpuPercent, 0);
+            CpuValue.Text = $"{snap.CpuTotal:F0}%";
+            RamValue.Text = $"{snap.MemPercent:F0}%";
+            GpuValue.Text = snap.GpuPercent >= 0 ? $"{snap.GpuPercent:F0}%" : "—";
+            CpuDetail.Text = snap.CpuMhz > 0 ? $"{snap.CpuMhz / 1000.0:F2} GHz" : " ";
+            RamDetail.Text = $"{snap.MemUsedGB:F1} / {snap.MemTotalGB:F0} GB";
+            GpuDetail.Text = snap.GpuTempC > 0 ? $"{snap.GpuTempC:F0} °C" : (snap.GpuPercent >= 0 ? "Active" : "N/A");
+            DownText.Text = Speed(snap.NetRecvKBs);
+            UpText.Text = Speed(snap.NetSentKBs);
+            TempText.Text = snap.CpuTempC > 0 ? $"{snap.CpuTempC:F0} °C" : "—";
+            ClockText.Text = DateTime.Now.ToString("HH:mm");
+        }
+
+        private static string Speed(double kbs) =>
+            kbs >= 1024 ? $"{kbs / 1024.0:F1} MB/s" : $"{kbs:F0} KB/s";
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {

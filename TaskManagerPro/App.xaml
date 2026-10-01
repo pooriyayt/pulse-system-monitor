@@ -8,13 +8,284 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- استایل مشترک کارت‌ها (ظاهر Fluent ویندوز 11) -->
-            <Style x:Key="CardBorderStyle" TargetType="Border">
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <!-- کارت شیشه‌ای تیره -->
+                    <SolidColorBrush x:Key="PulseCardBrush" Color="#12FFFFFF" />
+                    <SolidColorBrush x:Key="PulseCardHoverBrush" Color="#14FFFFFF" />
+                    <SolidColorBrush x:Key="PulseSurfaceBrush" Color="#0AFFFFFF" />
+                    <SolidColorBrush x:Key="PulseSidebarBrush" Color="#0AFFFFFF" />
+                    <!-- لبه‌ی براق شیشه: نور از بالا-چپ، بازتاب پایین-راست -->
+                    <LinearGradientBrush x:Key="PulseGlassRimBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#B3FFFFFF" />
+                        <GradientStop Offset="0.18" Color="#40FFFFFF" />
+                        <GradientStop Offset="0.5" Color="#0AFFFFFF" />
+                        <GradientStop Offset="0.82" Color="#26FFFFFF" />
+                        <GradientStop Offset="1" Color="#73FFFFFF" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="PulseGlassFillBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0" Color="#24FFFFFF" />
+                        <GradientStop Offset="0.5" Color="#0DFFFFFF" />
+                        <GradientStop Offset="1" Color="#14FFFFFF" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="PulseFieldBrush" Color="#14FFFFFF" />
+                    <LinearGradientBrush x:Key="PulseCardStrokeBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0" Color="#2EFFFFFF" />
+                        <GradientStop Offset="0.25" Color="#0DFFFFFF" />
+                        <GradientStop Offset="1" Color="#05FFFFFF" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="PulseDividerBrush" Color="#14FFFFFF" />
+                    <SolidColorBrush x:Key="PulseMutedTextBrush" Color="#A0FFFFFF" />
+                    <SolidColorBrush x:Key="PulseFaintTextBrush" Color="#70FFFFFF" />
+                    <SolidColorBrush x:Key="PulseTrackBrush" Color="#1AFFFFFF" />
+                    <SolidColorBrush x:Key="PulseContentBackdropBrush" Color="#0AFFFFFF" />
+                    <SolidColorBrush x:Key="PulseSelectionBrush" Color="#24FFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="PulseCardBrush" Color="#CCFFFFFF" />
+                    <SolidColorBrush x:Key="PulseCardHoverBrush" Color="#0F000000" />
+                    <SolidColorBrush x:Key="PulseSurfaceBrush" Color="#08000000" />
+                    <SolidColorBrush x:Key="PulseSidebarBrush" Color="#73FFFFFF" />
+                    <LinearGradientBrush x:Key="PulseGlassRimBrush" StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Offset="0" Color="#FFFFFFFF" />
+                        <GradientStop Offset="0.3" Color="#80FFFFFF" />
+                        <GradientStop Offset="0.6" Color="#14000000" />
+                        <GradientStop Offset="1" Color="#B3FFFFFF" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="PulseGlassFillBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0" Color="#CCFFFFFF" />
+                        <GradientStop Offset="1" Color="#80FFFFFF" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="PulseFieldBrush" Color="#0D000000" />
+                    <LinearGradientBrush x:Key="PulseCardStrokeBrush" StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0" Color="#FFFFFFFF" />
+                        <GradientStop Offset="1" Color="#14000000" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="PulseDividerBrush" Color="#14000000" />
+                    <SolidColorBrush x:Key="PulseMutedTextBrush" Color="#99000000" />
+                    <SolidColorBrush x:Key="PulseFaintTextBrush" Color="#70000000" />
+                    <SolidColorBrush x:Key="PulseTrackBrush" Color="#14000000" />
+                    <SolidColorBrush x:Key="PulseContentBackdropBrush" Color="#73FFFFFF" />
+                    <SolidColorBrush x:Key="PulseSelectionBrush" Color="#17000000" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <!-- ============ Pulse design system ============ -->
+
+            <!-- گوشه‌های گردتر برای کل کنترل‌ها -->
+
+            <FontFamily x:Key="DisplayFont">Segoe UI Variable Display</FontFamily>
+            <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
+
+            <!-- رنگ‌های وضعیت (سالم / پرمصرف / بحرانی) -->
+            <SolidColorBrush x:Key="PulseOkBrush" Color="#3DD68C" />
+            <SolidColorBrush x:Key="PulseWarnBrush" Color="#FFB547" />
+            <SolidColorBrush x:Key="PulseDangerBrush" Color="#FF5C6C" />
+            <SolidColorBrush x:Key="PulseDangerFillBrush" Color="#E5484D" />
+
+
+            <!-- کارت ظاهر کلاسیک (نسخه‌ی قبلی) -->
+            <Style x:Key="ClassicCardBorderStyle" TargetType="Border">
                 <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="CornerRadius" Value="8" />
                 <Setter Property="Padding" Value="16" />
+            </Style>
+
+            <!-- کارت اصلی -->
+            <Style x:Key="CardBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource PulseCardBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource PulseCardStrokeBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Padding" Value="22" />
+            </Style>
+
+            <!-- کارت کوچک داخل کارت‌ها (آمار، هسته‌ها) -->
+            <Style x:Key="TileBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource PulseSurfaceBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource PulseDividerBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="14,12" />
+            </Style>
+
+            <!-- عنوان بزرگ صفحه -->
+            <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
+                <Setter Property="FontSize" Value="30" />
+                <Setter Property="FontWeight" Value="Bold" />
+                <Setter Property="LineHeight" Value="34" />
+            </Style>
+
+            <Style x:Key="PageSubtitleStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="Foreground" Value="{ThemeResource PulseMutedTextBrush}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <!-- عنوان کارت -->
+            <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <!-- برچسب کوچک بالای اعداد -->
+            <Style x:Key="EyebrowStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="CharacterSpacing" Value="60" />
+                <Setter Property="Foreground" Value="{ThemeResource PulseMutedTextBrush}" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            </Style>
+
+            <!-- اعداد بزرگ داشبورد -->
+            <Style x:Key="BigNumberStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
+                <Setter Property="FontSize" Value="34" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="LineHeight" Value="38" />
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+            </Style>
+
+            <Style x:Key="StatValueStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+            </Style>
+
+            <Style x:Key="MutedTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Foreground" Value="{ThemeResource PulseMutedTextBrush}" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            </Style>
+
+            <!-- سرستون جدول‌ها -->
+            <Style x:Key="ColumnHeaderStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="CharacterSpacing" Value="50" />
+                <Setter Property="Foreground" Value="{ThemeResource PulseMutedTextBrush}" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <!-- نوار سرستون جدول -->
+            <Style x:Key="TableHeaderBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource PulseSurfaceBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource PulseDividerBrush}" />
+                <Setter Property="BorderThickness" Value="0,0,0,1" />
+                <Setter Property="CornerRadius" Value="16,16,0,0" />
+                <Setter Property="Padding" Value="16,10" />
+            </Style>
+
+            <!-- قاب جدول (لیست‌ها داخل کارت) -->
+            <Style x:Key="TableCardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource PulseCardBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource PulseCardStrokeBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="16" />
+            </Style>
+
+            <!-- قرص کوچک (Chip) -->
+            <Style x:Key="ChipBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource PulseSurfaceBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource PulseDividerBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Padding" Value="10,4" />
+            </Style>
+
+            <!-- دکمه‌ی خطرناک (End task) -->
+            <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="{StaticResource PulseDangerFillBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="14,7" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <!-- دکمه‌ی شیشه‌ای نوار ابزار -->
+            <Style x:Key="ToolbarButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Padding" Value="14,7" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="Background" Value="{ThemeResource PulseFieldBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource PulseCardStrokeBrush}" />
+            </Style>
+
+            <!-- دکمه‌ی آیکونی بدون قاب (نوار ابزار) -->
+            <Style x:Key="GhostIconButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Width" Value="36" />
+                <Setter Property="Height" Value="32" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="CornerRadius" Value="8" />
+            </Style>
+
+            <!-- آیتم سایدبار به سبک macOS (RadioButton = فقط یکی انتخاب) -->
+            <Style x:Key="SidebarItemStyle" TargetType="RadioButton">
+                <Setter Property="UseSystemFocusVisuals" Value="False" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Grid Height="38" Background="Transparent">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="HoverBg.Opacity" Value="1" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="HoverBg.Opacity" Value="1" />
+                                                <Setter Target="Body.Opacity" Value="0.7" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled" />
+                                    </VisualStateGroup>
+                                    <VisualStateGroup x:Name="CheckStates">
+                                        <VisualState x:Name="Checked">
+                                            <VisualState.Setters>
+                                                <Setter Target="SelBg.Opacity" Value="1" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Unchecked" />
+                                        <VisualState x:Name="Indeterminate" />
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                                <Border x:Name="HoverBg" CornerRadius="12" Background="{ThemeResource PulseCardHoverBrush}" Opacity="0" />
+                                <Border x:Name="SelBg" CornerRadius="12" Opacity="0"
+                                        Background="{ThemeResource PulseSelectionBrush}" />
+                                <ContentPresenter x:Name="Body" Margin="10,0" VerticalAlignment="Center"
+                                                  Content="{TemplateBinding Content}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="AccentPillButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+                <Setter Property="Padding" Value="16,8" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+
+            <!-- سواچ رنگ دایره‌ای -->
+            <Style x:Key="SwatchButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Width" Value="34" />
+                <Setter Property="Height" Value="34" />
+                <Setter Property="CornerRadius" Value="17" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="BorderThickness" Value="2" />
+                <Setter Property="BorderBrush" Value="{ThemeResource PulseDividerBrush}" />
             </Style>
         </ResourceDictionary>
     </Application.Resources>

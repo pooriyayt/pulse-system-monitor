@@ -2,10 +2,11 @@
     x:Class="TaskManagerPro.Views.FileUnlockerPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:TaskManagerPro.Controls"
     xmlns:models="using:TaskManagerPro.Models"
     NavigationCacheMode="Required">
 
-    <Grid Padding="24,16,24,24" RowSpacing="12">
+    <Grid Padding="32,24,32,24" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -16,9 +17,8 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
-            <FontIcon Glyph="&#xE785;" FontSize="24"
-                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-            <TextBlock x:Name="PageTitle" Text="File Unlocker" Style="{StaticResource TitleTextBlockStyle}" />
+            <controls:IconBadge Glyph="&#xE785;" Size="44" VerticalAlignment="Center" />
+            <TextBlock x:Name="PageTitle" Text="File Unlocker" Style="{StaticResource PageTitleStyle}" VerticalAlignment="Center" />
         </StackPanel>
 
         <!-- ناحیه‌ی Drag & Drop -->
@@ -30,7 +30,7 @@
                 Drop="DropZone_Drop"
                 Padding="24">
             <StackPanel Spacing="12" HorizontalAlignment="Center">
-                <FontIcon Glyph="&#xE8B5;" FontSize="36" Opacity="0.7" />
+                <controls:IconBadge Glyph="&#xE785;" Size="56" HorizontalAlignment="Center" />
                 <TextBlock x:Name="DropHint" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
                            Text="Drag a file or folder here to see which processes are locking it" />
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
@@ -89,7 +89,7 @@
             </Button>
         </Grid>
 
-        <ListView x:Name="LockList" Grid.Row="5" SelectionMode="None">
+        <ListView x:Name="LockList" Grid.Row="5" SelectionMode="None" Margin="0,4,0,0">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:LockerRow">
                     <Grid ColumnSpacing="12" Padding="0,8">

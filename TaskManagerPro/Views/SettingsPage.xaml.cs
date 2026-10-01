@@ -50,24 +50,10 @@ namespace TaskManagerPro.Views
                     return;
                 }
 
-                // نسخه‌ی جدید موجود است — دانلود
-                UpdateStatus.Text = string.Format(L10n.T("Downloading version {0}..."), info.LatestVersion);
-                UpdateProgress.Visibility = Visibility.Visible;
-                UpdateProgress.Value = 0;
-
-                var progress = new Progress<double>(p => UpdateProgress.Value = p);
-                string? path = await UpdateChecker.DownloadAsync(info, progress);
-
-                UpdateProgress.Visibility = Visibility.Collapsed;
-
-                if (path == null)
-                {
-                    UpdateStatus.Text = L10n.T("Download failed. Try again later.");
-                    return;
-                }
-
-                UpdateStatus.Text = string.Format(L10n.T("Version {0} downloaded. Install it to update."), info.LatestVersion);
-                await ShowInstallDialog(info.LatestVersion, path);
+                // نسخه‌ی جدید موجود است — دیالوگ مدرن آپدیت (دانلود با پیشرفت + نصب)
+                UpdateStatus.Text = string.Format(L10n.T("Version {0} is available."), info.LatestVersion);
+                UpdateRing.IsActive = false;
+                await UpdateDialog.ShowAsync(info, XamlRoot);
             }
             finally
             {
@@ -425,6 +411,7 @@ namespace TaskManagerPro.Views
                 styleCombo.Items.Add(new ComboBoxItem { Content = L10n.T("Colored badge") });
                 styleCombo.Items.Add(new ComboBoxItem { Content = L10n.T("Text only") });
                 styleCombo.Items.Add(new ComboBoxItem { Content = L10n.T("Mini live graph") });
+                styleCombo.Items.Add(new ComboBoxItem { Content = L10n.T("Ring gauge") });
                 styleCombo.SelectedIndex = AppSettings.GetTrayIconStyle(m) + 1;
                 styleCombo.SelectionChanged += (s, e) =>
                 {
@@ -470,6 +457,7 @@ namespace TaskManagerPro.Views
 
         private void ApplyL10n()
         {
+            InitUiStyle();
             AlarmHeader.Text = L10n.T("Usage alarms");
             WidgetHeader.Text = L10n.T("Desktop widget");
             SoundHeader.Text = L10n.T("Sound");
@@ -512,6 +500,7 @@ namespace TaskManagerPro.Views
                 ((ComboBoxItem)TrayStyleCombo.Items[0]).Content = L10n.T("Colored badge");
                 ((ComboBoxItem)TrayStyleCombo.Items[1]).Content = L10n.T("Text only (transparent, colored text)");
                 ((ComboBoxItem)TrayStyleCombo.Items[2]).Content = L10n.T("Mini live graph");
+                ((ComboBoxItem)TrayStyleCombo.Items[3]).Content = L10n.T("Ring gauge");
             }
         }
 
@@ -528,5 +517,35 @@ namespace TaskManagerPro.Views
                 }
             }
         }
+    
+        // ---------- ظاهر رابط (جدید / کلاسیک) ----------
+
+        private bool _uiStyleInit;
+
+        private void InitUiStyle()
+        {
+            _uiStyleInit = true;
+            UiStyleRadios.SelectedIndex = AppSettings.UiStyle;
+            UiStyleHeader.Text = L10n.T("Interface style");
+            UiStyleSubtitle.Text = L10n.T("Choose between the new design and the classic look. Pulse restarts to apply it.");
+            UiModernRadio.Content = L10n.T("New design");
+            UiClassicRadio.Content = L10n.T("Classic");
+            UiRestartLabel.Text = L10n.T("Restart now to apply");
+            ReplayTourBtn.Content = L10n.T("Show the welcome tour again");
+            _uiStyleInit = false;
+        }
+
+        private void UiStyle_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (_uiStyleInit || UiStyleRadios.SelectedIndex < 0) return;
+            AppSettings.UiStyle = UiStyleRadios.SelectedIndex;
+            bool differs = (AppSettings.UiStyle == 0) != AppSettings.ModernUi;
+            UiRestartBtn.Visibility = differs ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void UiRestart_Click(object sender, RoutedEventArgs e) => AppRestart.Restart();
+
+        private void ReplayTour_Click(object sender, RoutedEventArgs e) =>
+            (App.MainAppWindow as MainWindow)?.ReplayTour();
     }
 }

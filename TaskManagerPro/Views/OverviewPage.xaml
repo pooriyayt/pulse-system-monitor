@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="TaskManagerPro.Views.OverviewPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,149 +6,398 @@
     NavigationCacheMode="Required">
 
     <Grid>
-      <ScrollViewer x:Name="ContentScroller" Padding="24,16,24,24">
-        <StackPanel Spacing="16" MaxWidth="1000" HorizontalAlignment="Stretch">
+      <!-- ریسپانسیو: در عرض کم کاشی‌ها ۲ستونه و کارت‌ها تک‌ستونه می‌شوند -->
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup>
+          <VisualState x:Name="WideState">
+            <VisualState.StateTriggers>
+              <AdaptiveTrigger MinWindowWidth="1240" />
+            </VisualState.StateTriggers>
+          </VisualState>
+          <VisualState x:Name="NarrowState">
+            <VisualState.StateTriggers>
+              <AdaptiveTrigger MinWindowWidth="0" />
+            </VisualState.StateTriggers>
+            <VisualState.Setters>
+              <!-- کاشی‌ها: ۲ × ۲ -->
+              <Setter Target="KpiCol2.Width" Value="0" />
+              <Setter Target="KpiCol3.Width" Value="0" />
+              <Setter Target="GpuTile.(Grid.Column)" Value="0" />
+              <Setter Target="GpuTile.(Grid.Row)" Value="1" />
+              <Setter Target="DiskTile.(Grid.Column)" Value="1" />
+              <Setter Target="DiskTile.(Grid.Row)" Value="1" />
+              <Setter Target="DiskTile.(Grid.ColumnSpan)" Value="3" />
+              <Setter Target="MemTile.(Grid.ColumnSpan)" Value="3" />
+              <!-- کارت‌ها: یک ستون -->
+              <Setter Target="CardCol1.Width" Value="0" />
+              <Setter Target="MemCard.(Grid.Column)" Value="0" />
+              <Setter Target="MemCard.(Grid.Row)" Value="1" />
+              <Setter Target="GpuCard.(Grid.Row)" Value="2" />
+              <Setter Target="DiskCard.(Grid.Column)" Value="0" />
+              <Setter Target="DiskCard.(Grid.Row)" Value="3" />
+              <Setter Target="NetCard.(Grid.Row)" Value="4" />
+              <Setter Target="HardwareCard.(Grid.Row)" Value="5" />
+              <Setter Target="CpuCard.(Grid.ColumnSpan)" Value="2" />
+              <Setter Target="MemCard.(Grid.ColumnSpan)" Value="2" />
+              <Setter Target="GpuCard.(Grid.ColumnSpan)" Value="2" />
+              <Setter Target="DiskCard.(Grid.ColumnSpan)" Value="2" />
+            </VisualState.Setters>
+          </VisualState>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
 
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <FontIcon Glyph="&#xE9D9;" FontSize="24"
-                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                <TextBlock x:Name="OverviewTitle" Text="Overview" Style="{StaticResource TitleTextBlockStyle}" />
-            </StackPanel>
+      <ScrollViewer x:Name="ContentScroller">
+        <StackPanel Spacing="20" Padding="32,24,32,32" MaxWidth="1400">
+            <StackPanel.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="28" />
+                </TransitionCollection>
+            </StackPanel.ChildrenTransitions>
 
-            <!-- ================= CPU ================= -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel Spacing="8">
-                    <Grid>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE950;" FontSize="16"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock x:Name="CpuHeader" Text="CPU" Style="{StaticResource SubtitleTextBlockStyle}" />
-                        </StackPanel>
-                        <TextBlock x:Name="CpuModelText"
-                                   HorizontalAlignment="Right"
-                                   VerticalAlignment="Bottom"
-                                   Opacity="0.7" />
-                    </Grid>
-                    <controls:LiveGraph x:Name="CpuGraph" Height="120" />
-                    <TextBlock x:Name="CpuText" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <VariableSizedWrapGrid x:Name="CoresPanel"
-                                           Orientation="Horizontal"
-                                           ItemWidth="150"
-                                           ItemHeight="46" />
-                </StackPanel>
-            </Border>
-
-            <!-- ================= Memory ================= -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xEEA0;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="MemHeader" Text="Memory" Style="{StaticResource SubtitleTextBlockStyle}" />
+            <!-- ================= سرتیتر ================= -->
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Spacing="14">
+                    <controls:IconBadge Glyph="&#xE80F;" Size="44" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="OverviewTitle" Text="Overview" Style="{StaticResource PageTitleStyle}" />
+                        <TextBlock x:Name="GreetingText" Text="Your system at a glance" Style="{StaticResource PageSubtitleStyle}" />
                     </StackPanel>
-                    <controls:LiveGraph x:Name="MemGraph" Height="120" />
-                    <TextBlock x:Name="MemText" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <TextBlock x:Name="PageFileText" Opacity="0.7" />
                 </StackPanel>
-            </Border>
-
-            <!-- ================= GPU ================= -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel Spacing="8">
-                    <Grid>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE7F4;" FontSize="16"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock x:Name="GpuHeader" Text="GPU" Style="{StaticResource SubtitleTextBlockStyle}" />
-                        </StackPanel>
-                        <TextBlock x:Name="GpuModelText"
-                                   HorizontalAlignment="Right"
-                                   VerticalAlignment="Bottom"
-                                   Opacity="0.7"
-                                   TextTrimming="CharacterEllipsis"
-                                   MaxWidth="550" />
-                    </Grid>
-                    <controls:LiveGraph x:Name="GpuGraph" Height="120" />
-                    <TextBlock x:Name="GpuText" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                </StackPanel>
-            </Border>
-
-            <!-- ================= Disk ================= -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel Spacing="8">
+                <!-- وضعیت کلی سیستم -->
+                <Border x:Name="HealthPill" Visibility="Collapsed" Grid.Column="1" Style="{StaticResource ChipBorderStyle}"
+                        Padding="14,7" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xEDA2;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="DiskHeader" Text="Disk" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <Ellipse x:Name="HealthDot" Width="9" Height="9" Fill="{StaticResource PulseOkBrush}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="HealthText" Text="System healthy" FontWeight="SemiBold" FontSize="13" />
+                        <TextBlock x:Name="UptimeText" FontSize="13" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     </StackPanel>
-                    <controls:LiveGraph x:Name="DiskGraph" Height="120" />
-                    <TextBlock x:Name="DiskText" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                </StackPanel>
-            </Border>
+                </Border>
+            </Grid>
 
-            <!-- ================= Network ================= -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE839;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="NetHeader" Text="Network" Style="{StaticResource SubtitleTextBlockStyle}" />
-                    </StackPanel>
-                    <Grid ColumnSpacing="16">
+            <!-- ================= کاشی‌های KPI ================= -->
+            <Grid ColumnSpacing="16" RowSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition x:Name="KpiCol2" Width="*" />
+                    <ColumnDefinition x:Name="KpiCol3" Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- CPU -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="18">
+                    <Grid ColumnSpacing="14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0" Spacing="6">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE896;" FontSize="12" Opacity="0.7" />
-                                <TextBlock x:Name="NetDownLabel" Text="Download" Opacity="0.7" />
+                        <StackPanel Spacing="4" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE950;" FontSize="13" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <TextBlock x:Name="CpuTileLabel" Text="CPU" Style="{StaticResource EyebrowStyle}" />
                             </StackPanel>
-                            <controls:LiveGraph x:Name="NetDownGraph" Height="90" AutoScale="True" Unit="SpeedKBs" />
-                            <TextBlock x:Name="NetDownText" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock x:Name="CpuBig" Text="—" Style="{StaticResource BigNumberStyle}" />
+                            <TextBlock x:Name="CpuSub" Text=" " Style="{StaticResource MutedTextStyle}" />
                         </StackPanel>
-
-                        <StackPanel Grid.Column="1" Spacing="6">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE898;" FontSize="12" Opacity="0.7" />
-                                <TextBlock x:Name="NetUpLabel" Text="Upload" Opacity="0.7" />
-                            </StackPanel>
-                            <controls:LiveGraph x:Name="NetUpGraph" Height="90" AutoScale="True" Unit="SpeedKBs" />
-                            <TextBlock x:Name="NetUpText" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        </StackPanel>
+                        <controls:RingGauge x:Name="CpuRing" Grid.Column="1" Width="64" Height="64" Thickness="7" UseLoadColors="True" />
                     </Grid>
-                </StackPanel>
-            </Border>
+                </Border>
 
-            <!-- ================= Hardware ================= -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE770;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="HardwareHeader" Text="Hardware" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <!-- Memory -->
+                <Border x:Name="MemTile" Grid.Column="1" Style="{StaticResource CardBorderStyle}" Padding="18">
+                    <Grid ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="4" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xEEA0;" FontSize="13" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <TextBlock x:Name="MemTileLabel" Text="MEMORY" Style="{StaticResource EyebrowStyle}" />
+                            </StackPanel>
+                            <TextBlock x:Name="MemBig" Text="—" Style="{StaticResource BigNumberStyle}" />
+                            <TextBlock x:Name="MemSub" Text=" " Style="{StaticResource MutedTextStyle}" />
+                        </StackPanel>
+                        <controls:RingGauge x:Name="MemRing" Grid.Column="1" Width="64" Height="64" Thickness="7" UseLoadColors="True" />
+                    </Grid>
+                </Border>
+
+                <!-- GPU -->
+                <Border x:Name="GpuTile" Grid.Column="2" Style="{StaticResource CardBorderStyle}" Padding="18">
+                    <Grid ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="4" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE7F4;" FontSize="13" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <TextBlock x:Name="GpuTileLabel" Text="GPU" Style="{StaticResource EyebrowStyle}" />
+                            </StackPanel>
+                            <TextBlock x:Name="GpuBig" Text="—" Style="{StaticResource BigNumberStyle}" />
+                            <TextBlock x:Name="GpuSub" Text=" " Style="{StaticResource MutedTextStyle}" />
+                        </StackPanel>
+                        <controls:RingGauge x:Name="GpuRing" Grid.Column="1" Width="64" Height="64" Thickness="7" UseLoadColors="True" />
+                    </Grid>
+                </Border>
+
+                <!-- Disk -->
+                <Border x:Name="DiskTile" Grid.Column="3" Style="{StaticResource CardBorderStyle}" Padding="18">
+                    <Grid ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="4" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xEDA2;" FontSize="13" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <TextBlock x:Name="DiskTileLabel" Text="DISK" Style="{StaticResource EyebrowStyle}" />
+                            </StackPanel>
+                            <TextBlock x:Name="DiskBig" Text="—" Style="{StaticResource BigNumberStyle}" />
+                            <TextBlock x:Name="DiskSub" Text=" " Style="{StaticResource MutedTextStyle}" />
+                        </StackPanel>
+                        <controls:RingGauge x:Name="DiskRing" Grid.Column="1" Width="64" Height="64" Thickness="7" UseLoadColors="True" />
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ================= کارت‌های گراف ================= -->
+            <Grid ColumnSpacing="16" RowSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition x:Name="CardCol1" Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- ================= CPU ================= -->
+                <Border x:Name="CpuCard" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconBadge Glyph="&#xE950;" Size="32" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="CpuHeader" Text="CPU" Style="{StaticResource CardTitleStyle}" />
+                                <TextBlock x:Name="CpuModelText" Style="{StaticResource MutedTextStyle}" />
+                            </StackPanel>
+                        </Grid>
+                        <controls:LiveGraph x:Name="CpuGraph" Height="130" />
+                        <TextBlock x:Name="CpuText" Style="{StaticResource MutedTextStyle}" FontSize="13" FlowDirection="LeftToRight" HorizontalAlignment="Left" />
+                        <VariableSizedWrapGrid x:Name="CoresPanel"
+                                               Orientation="Horizontal"
+                                               ItemWidth="104"
+                                               ItemHeight="40" />
                     </StackPanel>
-                    <TextBlock x:Name="HardwareText"
-                               TextWrapping="Wrap"
-                               FontFamily="Consolas"
-                               Opacity="0.85" />
-                </StackPanel>
-            </Border>
+                </Border>
+
+                <!-- ================= Memory ================= -->
+                <Border x:Name="MemCard" Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconBadge Glyph="&#xEEA0;" Size="32" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="MemHeader" Text="Memory" Style="{StaticResource CardTitleStyle}" />
+                                <TextBlock x:Name="PageFileText" Style="{StaticResource MutedTextStyle}" />
+                            </StackPanel>
+                        </Grid>
+                        <controls:LiveGraph x:Name="MemGraph" Height="130" />
+                        <TextBlock x:Name="MemText" Style="{StaticResource MutedTextStyle}" FontSize="13" FlowDirection="LeftToRight" HorizontalAlignment="Left" />
+                        <!-- نوار ترکیب حافظه: استفاده‌شده / آزاد -->
+                        <Grid Height="10" CornerRadius="5" Background="{ThemeResource PulseTrackBrush}" FlowDirection="LeftToRight">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="MemUsedCol" Width="0*" />
+                                <ColumnDefinition x:Name="MemFreeCol" Width="1*" />
+                            </Grid.ColumnDefinitions>
+                            <Border CornerRadius="5" Background="{ThemeResource AccentFillColorDefaultBrush}" />
+                        </Grid>
+                        <Grid>
+                            <TextBlock x:Name="MemUsedLegend" Style="{StaticResource MutedTextStyle}" HorizontalAlignment="Left" />
+                            <TextBlock x:Name="MemFreeLegend" Style="{StaticResource MutedTextStyle}" HorizontalAlignment="Right" />
+                        </Grid>
+                        <!-- جزئیات رم: سرعت، اسلات‌ها، نوع ماژول، Committed، کش، فشرده -->
+                        <Grid ColumnSpacing="8" RowSpacing="8" Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Border Grid.Column="0" Grid.Row="0" Style="{StaticResource TileBorderStyle}" Padding="12,9">
+                                <StackPanel Spacing="1">
+                                    <TextBlock x:Name="RamSpeedLabel" Text="Speed" Style="{StaticResource EyebrowStyle}" />
+                                    <TextBlock x:Name="RamSpeedValue" Text="—" FontWeight="SemiBold" FontSize="15" FlowDirection="LeftToRight" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Grid.Row="0" Style="{StaticResource TileBorderStyle}" Padding="12,9">
+                                <StackPanel Spacing="1">
+                                    <TextBlock x:Name="RamSlotsLabel" Text="Slots used" Style="{StaticResource EyebrowStyle}" />
+                                    <TextBlock x:Name="RamSlotsValue" Text="—" FontWeight="SemiBold" FontSize="15" FlowDirection="LeftToRight" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Grid.Row="0" Style="{StaticResource TileBorderStyle}" Padding="12,9">
+                                <StackPanel Spacing="1">
+                                    <TextBlock x:Name="RamFormLabel" Text="Form factor" Style="{StaticResource EyebrowStyle}" />
+                                    <TextBlock x:Name="RamFormValue" Text="—" FontWeight="SemiBold" FontSize="15" FlowDirection="LeftToRight" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="0" Grid.Row="1" Style="{StaticResource TileBorderStyle}" Padding="12,9">
+                                <StackPanel Spacing="1">
+                                    <TextBlock x:Name="RamCommitLabel" Text="Committed" Style="{StaticResource EyebrowStyle}" />
+                                    <TextBlock x:Name="RamCommitValue" Text="—" FontWeight="SemiBold" FontSize="15" FlowDirection="LeftToRight" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Grid.Row="1" Style="{StaticResource TileBorderStyle}" Padding="12,9">
+                                <StackPanel Spacing="1">
+                                    <TextBlock x:Name="RamCachedLabel" Text="Cached" Style="{StaticResource EyebrowStyle}" />
+                                    <TextBlock x:Name="RamCachedValue" Text="—" FontWeight="SemiBold" FontSize="15" FlowDirection="LeftToRight" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Grid.Row="1" Style="{StaticResource TileBorderStyle}" Padding="12,9">
+                                <StackPanel Spacing="1">
+                                    <TextBlock x:Name="RamCompressedLabel" Text="Compressed" Style="{StaticResource EyebrowStyle}" />
+                                    <TextBlock x:Name="RamCompressedValue" Text="—" FontWeight="SemiBold" FontSize="15" FlowDirection="LeftToRight" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= GPU ================= -->
+                <Border x:Name="GpuCard" Grid.Row="1" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconBadge Glyph="&#xE7F4;" Size="32" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="GpuHeader" Text="GPU" Style="{StaticResource CardTitleStyle}" />
+                                <TextBlock x:Name="GpuModelText" Style="{StaticResource MutedTextStyle}" />
+                            </StackPanel>
+                        </Grid>
+                        <controls:LiveGraph x:Name="GpuGraph" Height="130" />
+                        <TextBlock x:Name="GpuText" FontSize="13" Foreground="{ThemeResource PulseMutedTextBrush}" TextWrapping="Wrap" LineHeight="20" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Disk ================= -->
+                <Border x:Name="DiskCard" Grid.Row="1" Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconBadge Glyph="&#xEDA2;" Size="32" />
+                            <TextBlock x:Name="DiskHeader" Grid.Column="1" Text="Disk" Style="{StaticResource CardTitleStyle}" />
+                        </Grid>
+                        <controls:LiveGraph x:Name="DiskGraph" Height="130" />
+                        <TextBlock x:Name="DiskText" FontSize="13" Foreground="{ThemeResource PulseMutedTextBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Network ================= -->
+                <Border x:Name="NetCard" Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconBadge Glyph="&#xE839;" Size="32" />
+                            <TextBlock x:Name="NetHeader" Grid.Column="1" Text="Network" Style="{StaticResource CardTitleStyle}" />
+                        </Grid>
+                        <Grid ColumnSpacing="20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="8">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE896;" FontSize="12" Foreground="{StaticResource PulseOkBrush}" />
+                                        <TextBlock x:Name="NetDownLabel" Text="Download" Style="{StaticResource EyebrowStyle}" />
+                                    </StackPanel>
+                                    <TextBlock x:Name="NetDownText" HorizontalAlignment="Right" FontWeight="SemiBold" FlowDirection="LeftToRight" />
+                                </Grid>
+                                <controls:LiveGraph x:Name="NetDownGraph" Height="100" AutoScale="True" Unit="SpeedKBs" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="8">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE898;" FontSize="12" Foreground="{StaticResource PulseWarnBrush}" />
+                                        <TextBlock x:Name="NetUpLabel" Text="Upload" Style="{StaticResource EyebrowStyle}" />
+                                    </StackPanel>
+                                    <TextBlock x:Name="NetUpText" HorizontalAlignment="Right" FontWeight="SemiBold" FlowDirection="LeftToRight" />
+                                </Grid>
+                                <controls:LiveGraph x:Name="NetUpGraph" Height="100" AutoScale="True" Unit="SpeedKBs" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ================= Hardware ================= -->
+                <Border x:Name="HardwareCard" Grid.Row="3" Grid.ColumnSpan="2" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconBadge Glyph="&#xE770;" Size="32" />
+                            <TextBlock x:Name="HardwareHeader" Grid.Column="1" Text="Hardware" Style="{StaticResource CardTitleStyle}" />
+                        </Grid>
+                        <TextBlock x:Name="HardwareText"
+                                   TextWrapping="Wrap"
+                                   FontFamily="{StaticResource MonoFont}"
+                                   FontSize="12.5"
+                                   LineHeight="22"
+                                   IsTextSelectionEnabled="True"
+                                   Foreground="{ThemeResource PulseMutedTextBrush}"
+                                   FlowDirection="LeftToRight" />
+                    </StackPanel>
+                </Border>
+            </Grid>
 
         </StackPanel>
       </ScrollViewer>
 
       <!-- لودینگ تا آماده شدن اولین نمونه‌ی شمارنده‌ها (برنامه از همان ثانیه‌ی اول باز و روان است) -->
       <StackPanel x:Name="LoadingPanel"
-                  Spacing="12"
+                  Spacing="14"
                   HorizontalAlignment="Center"
                   VerticalAlignment="Center">
-        <ProgressRing IsActive="True" Width="40" Height="40"
+        <ProgressRing IsActive="True" Width="44" Height="44"
                       HorizontalAlignment="Center" />
         <TextBlock x:Name="LoadingText"
                    Text="Reading system counters..."
-                   Opacity="0.7"
+                   Style="{StaticResource PageSubtitleStyle}"
                    HorizontalAlignment="Center" />
       </StackPanel>
     </Grid>

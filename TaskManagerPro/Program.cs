@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -44,7 +44,18 @@ namespace TaskManagerPro
                 var activation = AppInstance.GetCurrent().GetActivatedEventArgs();
                 LaunchedAtStartup = activation?.Kind == ExtendedActivationKind.StartupTask;
 
-                var main = AppInstance.FindOrRegisterForKey("PulseMainInstance");
+                const string key = "PulseMainInstance";
+                var main = AppInstance.FindOrRegisterForKey(key);
+
+                // اجرای دوباره (مثلاً با دسترسی ادمین): تا بسته شدن نمونه‌ی قبلی صبر کن
+                if (!main.IsCurrent && Array.IndexOf(Environment.GetCommandLineArgs(), "--relaunch") >= 0)
+                {
+                    for (int i = 0; i < 25 && !main.IsCurrent; i++)
+                    {
+                        Thread.Sleep(200);
+                        main = AppInstance.FindOrRegisterForKey(key);
+                    }
+                }
                 if (main.IsCurrent)
                 {
                     // اجراهای بعدی به این نمونه هدایت می‌شوند

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.UI.Dispatching;
@@ -23,6 +23,12 @@ namespace TaskManagerPro.Monitoring
         private static readonly object Lock = new();
         private static readonly Dictionary<string, double[]> Buffers = new();
         private static DispatcherQueueTimer? _timer;
+
+        /// <summary>هر نمونه‌ی جدید (روی ترد پس‌زمینه) — برای آمار زنده‌ی نوار عنوان</summary>
+        public static event Action<SystemSnapshot>? Sampled;
+
+        /// <summary>آخرین نمونه‌ی خوانده‌شده</summary>
+        public static SystemSnapshot? Latest { get; private set; }
         private static bool _reading;
 
         /// <summary>ثانیه‌ی (epoch) جدیدترین نمونه — 0 یعنی هنوز داده‌ای نداریم</summary>
@@ -134,6 +140,8 @@ namespace TaskManagerPro.Monitoring
                         }
                     }
                     AlarmManager.Check(s);
+                    Latest = s;
+                    try { Sampled?.Invoke(s); } catch { }
                     MaybeSave();
                 }
                 catch { }

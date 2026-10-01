@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceProcess;
@@ -33,6 +33,7 @@ namespace TaskManagerPro.Views
         private void ApplyL10n()
         {
             ServicesTitle.Text = L10n.T("Services");
+            ServicesSubtitle.Text = L10n.T("Start, stop and restart Windows services");
             SearchBox.PlaceholderText = L10n.T("Search services...  (Ctrl+F)");
             RefreshLabel.Text = L10n.T("Refresh");
             ErrorBar.Title = L10n.T("Note");
@@ -56,6 +57,7 @@ namespace TaskManagerPro.Views
                                     Name = sc.ServiceName,
                                     DisplayName = sc.DisplayName,
                                     Status = L10n.T(sc.Status.ToString()),
+                                    Running = sc.Status == System.ServiceProcess.ServiceControllerStatus.Running,
                                 });
                             }
                             catch { }

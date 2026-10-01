@@ -2,26 +2,48 @@
     x:Class="TaskManagerPro.Views.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:TaskManagerPro.Controls"
     NavigationCacheMode="Required">
 
-    <ScrollViewer Padding="24,16,24,24">
-        <StackPanel Spacing="16" MaxWidth="700" HorizontalAlignment="Left">
+    <ScrollViewer Padding="32,24,32,24">
+        <StackPanel Spacing="14" MaxWidth="860" HorizontalAlignment="Center">
 
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <FontIcon Glyph="&#xE713;" FontSize="24"
-                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                <TextBlock x:Name="PageTitle" Text="Settings" Style="{StaticResource TitleTextBlockStyle}" />
+            <StackPanel Orientation="Horizontal" Spacing="14">
+                <controls:IconBadge Glyph="&#xE713;" Size="44" VerticalAlignment="Center" />
+                <TextBlock x:Name="PageTitle" Text="Settings" Style="{StaticResource PageTitleStyle}" VerticalAlignment="Center" />
             </StackPanel>
+
+
+            <!-- ظاهر رابط: جدید یا کلاسیک -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE771;" Size="28" />
+                        <TextBlock x:Name="UiStyleHeader" Text="Interface style" Style="{StaticResource CardTitleStyle}" />
+                    </StackPanel>
+                    <TextBlock x:Name="UiStyleSubtitle" Text="Choose between the new design and the classic look. Pulse restarts to apply it." Opacity="0.7" TextWrapping="Wrap" />
+                    <RadioButtons x:Name="UiStyleRadios" SelectionChanged="UiStyle_Changed">
+                        <RadioButton x:Name="UiModernRadio" Content="New design" />
+                        <RadioButton x:Name="UiClassicRadio" Content="Classic" />
+                    </RadioButtons>
+                    <HyperlinkButton x:Name="ReplayTourBtn" Content="Show the welcome tour again" Padding="0" Click="ReplayTour_Click" />
+                    <Button x:Name="UiRestartBtn" Visibility="Collapsed" Style="{StaticResource AccentButtonStyle}" Click="UiRestart_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE72C;" FontSize="14" />
+                            <TextBlock x:Name="UiRestartLabel" Text="Restart now to apply" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
 
             <!-- تم -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE771;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="AppearanceHeader" Text="Appearance" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE771;" Size="28" />
+                        <TextBlock x:Name="AppearanceHeader" Text="Appearance" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
-                    <TextBlock x:Name="ThemeSubtitle" Text="Choose the app theme" Opacity="0.7" />
+                    <TextBlock x:Name="ThemeSubtitle" Text="Choose the app theme" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <RadioButtons x:Name="ThemeRadios" SelectionChanged="Theme_Changed">
                         <RadioButton Content="Dark (Mica)" />
                         <RadioButton Content="Light (Mica)" />
@@ -37,10 +59,9 @@
             <!-- زبان -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE774;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="LangHeader" Text="Language" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE774;" Size="28" />
+                        <TextBlock x:Name="LangHeader" Text="Language" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
                     <ComboBox x:Name="LangCombo" Width="220" SelectionChanged="Lang_Changed">
                         <ComboBoxItem Content="English" />
@@ -55,12 +76,11 @@
             <!-- رنگ گراف‌ها -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE790;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="AccentHeader" Text="Accent color" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE790;" Size="28" />
+                        <TextBlock x:Name="AccentHeader" Text="Accent color" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
-                    <TextBlock x:Name="AccentSubtitle" Text="Used for the whole app (buttons, highlights) and all live graphs" Opacity="0.7" />
+                    <TextBlock x:Name="AccentSubtitle" Text="Used for the whole app (buttons, highlights) and all live graphs" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <StackPanel x:Name="AccentPanel" Orientation="Horizontal" Spacing="10">
                         <Button Tag="#61AFFE" Background="#61AFFE" Width="36" Height="36" CornerRadius="18" Click="Accent_Click" />
                         <Button Tag="#6CCB5F" Background="#6CCB5F" Width="36" Height="36" CornerRadius="18" Click="Accent_Click" />
@@ -99,12 +119,11 @@
             <!-- سرعت رفرش -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE72C;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="RefreshHeader" Text="Refresh rate" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE72C;" Size="28" />
+                        <TextBlock x:Name="RefreshHeader" Text="Refresh rate" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
-                    <TextBlock x:Name="RefreshLabel" Opacity="0.7" />
+                    <TextBlock x:Name="RefreshLabel" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <Slider x:Name="RefreshSlider"
                             Minimum="500"
                             Maximum="2000"
@@ -118,10 +137,9 @@
             <!-- پنجره -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE8A7;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="WindowHeader" Text="Window" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE8A7;" Size="28" />
+                        <TextBlock x:Name="WindowHeader" Text="Window" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
                     <ToggleSwitch x:Name="TopToggle"
                                   Header="Always on top (keep this window above all others)"
@@ -136,15 +154,14 @@
             <!-- System Tray -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE823;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="TrayHeader" Text="System tray" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE823;" Size="28" />
+                        <TextBlock x:Name="TrayHeader" Text="System tray" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
                     <ToggleSwitch x:Name="TrayToggle"
                                   Header="Live usage icon in the system tray — closing or minimizing hides the app to the tray"
                                   Toggled="Tray_Toggled" />
-                    <TextBlock x:Name="TrayItemsLabel" Text="Tray items — pick one or more, each gets its own live icon" Opacity="0.7" />
+                    <TextBlock x:Name="TrayItemsLabel" Text="Tray items — pick one or more, each gets its own live icon" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <StackPanel Orientation="Horizontal" Spacing="16">
                         <CheckBox x:Name="TrayCpuCheck" Content="CPU" MinWidth="0" Checked="TrayItems_Changed" Unchecked="TrayItems_Changed" />
                         <CheckBox x:Name="TrayRamCheck" Content="RAM" MinWidth="0" Checked="TrayItems_Changed" Unchecked="TrayItems_Changed" />
@@ -154,15 +171,16 @@
                         <CheckBox x:Name="TrayUpCheck" Content="Upload" MinWidth="0" Checked="TrayItems_Changed" Unchecked="TrayItems_Changed" />
                     </StackPanel>
                     <TextBlock x:Name="TrayAdminNote" Text="Download / Upload speeds need the app to run as administrator" FontSize="12" Opacity="0.5" />
-                    <TextBlock x:Name="IconStyleLabel" Text="Icon style" Opacity="0.7" />
+                    <TextBlock x:Name="IconStyleLabel" Text="Icon style" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <ComboBox x:Name="TrayStyleCombo" Width="240" SelectionChanged="TrayStyle_Changed">
                         <ComboBoxItem Content="Colored badge" />
                         <ComboBoxItem Content="Text only (transparent, colored text)" />
                         <ComboBoxItem Content="Mini live graph" />
+                        <ComboBoxItem Content="Ring gauge" />
                     </ComboBox>
-                    <TextBlock x:Name="TraySizeLabel" Opacity="0.7" />
+                    <TextBlock x:Name="TraySizeLabel" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <Slider x:Name="TraySizeSlider" Minimum="75" Maximum="150" StepFrequency="5" Width="320" HorizontalAlignment="Left" ValueChanged="TraySize_Changed" />
-                    <TextBlock x:Name="TrayColorLabel" Text="Tray icon color" Opacity="0.7" />
+                    <TextBlock x:Name="TrayColorLabel" Text="Tray icon color" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <StackPanel x:Name="TrayColorPanel" Orientation="Horizontal" Spacing="10">
                         <Button Tag="#61AFFE" Background="#61AFFE" Width="28" Height="28" CornerRadius="14" Click="TrayColor_Click" />
                         <Button Tag="#6CCB5F" Background="#6CCB5F" Width="28" Height="28" CornerRadius="14" Click="TrayColor_Click" />
@@ -205,21 +223,20 @@
             <!-- آلارم مصرف -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xEA8F;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="AlarmHeader" Text="Usage alarms" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xEA8F;" Size="28" />
+                        <TextBlock x:Name="AlarmHeader" Text="Usage alarms" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
                     <ToggleSwitch x:Name="AlarmToggle"
                                   Header="Windows notification when CPU / RAM / temperature exceeds a limit"
                                   Toggled="Alarm_Toggled" />
-                    <TextBlock x:Name="AlarmCpuLabel" Opacity="0.7" />
+                    <TextBlock x:Name="AlarmCpuLabel" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <Slider x:Name="AlarmCpuSlider" Minimum="50" Maximum="100" StepFrequency="5"
                             Width="320" HorizontalAlignment="Left" ValueChanged="AlarmCpu_Changed" />
-                    <TextBlock x:Name="AlarmRamLabel" Opacity="0.7" />
+                    <TextBlock x:Name="AlarmRamLabel" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <Slider x:Name="AlarmRamSlider" Minimum="50" Maximum="100" StepFrequency="5"
                             Width="320" HorizontalAlignment="Left" ValueChanged="AlarmRam_Changed" />
-                    <TextBlock x:Name="AlarmTempLabel" Opacity="0.7" />
+                    <TextBlock x:Name="AlarmTempLabel" Foreground="{ThemeResource PulseMutedTextBrush}" />
                     <Slider x:Name="AlarmTempSlider" Minimum="40" Maximum="110" StepFrequency="5"
                             Width="320" HorizontalAlignment="Left" ValueChanged="AlarmTemp_Changed" />
                 </StackPanel>
@@ -228,10 +245,9 @@
             <!-- ویجت شناور دسکتاپ -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE8A9;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="WidgetHeader" Text="Desktop widget" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE8A9;" Size="28" />
+                        <TextBlock x:Name="WidgetHeader" Text="Desktop widget" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
                     <ToggleSwitch x:Name="WidgetToggle"
                                   Header="Small always-on-top window with live CPU / RAM / GPU graphs"
@@ -242,10 +258,9 @@
             <!-- صدا -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE767;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="SoundHeader" Text="Sound" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE767;" Size="28" />
+                        <TextBlock x:Name="SoundHeader" Text="Sound" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
                     <ToggleSwitch x:Name="SoundToggle"
                                   Header="Play a subtle sound when ending a task"
@@ -256,10 +271,9 @@
             <!-- میانبرهای صفحه‌کلید -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="4">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE765;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="KeyboardHeader" Text="Keyboard shortcuts" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE765;" Size="28" />
+                        <TextBlock x:Name="KeyboardHeader" Text="Keyboard shortcuts" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
                     <TextBlock x:Name="Shortcut1" Text="Ctrl + 1 ... 5 — switch between tabs" Opacity="0.8" />
                     <TextBlock x:Name="Shortcut2" Text="Ctrl + F — focus search (Processes / Services)" Opacity="0.8" />
@@ -272,10 +286,9 @@
             <!-- آپدیت -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE777;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="UpdateHeader" Text="Updates" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE777;" Size="28" />
+                        <TextBlock x:Name="UpdateHeader" Text="Updates" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Button x:Name="CheckUpdateBtn" Click="CheckUpdate_Click">
@@ -294,12 +307,11 @@
             <!-- درباره -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Spacing="4">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE946;" FontSize="16"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <TextBlock x:Name="AboutHeader" Text="About" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:IconBadge Glyph="&#xE946;" Size="28" />
+                        <TextBlock x:Name="AboutHeader" Text="About" Style="{StaticResource CardTitleStyle}" />
                     </StackPanel>
-                    <TextBlock Text="Pulse 2.2 - System Monitor" />
+                    <TextBlock Text="Pulse 2.3 - System Monitor" />
                     <TextBlock x:Name="AboutDesc" Text="A task manager for Windows 11, built with WinUI 3 and .NET 8."
                                Opacity="0.7"
                                TextWrapping="Wrap" />

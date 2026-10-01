@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -57,7 +57,7 @@ namespace TaskManagerPro.Monitoring
                             var row = new Row
                             {
                                 Pid = pid,
-                                Name = p.ProcessName,
+                                Name = Services.ProcessPathResolver.Display(p.ProcessName),
                                 MemMB = p.WorkingSet64 / (1024.0 * 1024.0),
                             };
 

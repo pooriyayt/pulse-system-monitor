@@ -18,7 +18,7 @@ New-Item -ItemType Directory -Force $outDir | Out-Null
 $version = $manifest.Package.Identity.Version   # e.g. 1.7.0.0
 $shortVer = ($version -split '\.')[0..1] -join '.'
 # installer version (independent of the app package version above)
-$installerVer = "2.2"
+$installerVer = "2.3"
 Write-Host "Building Pulse $shortVer, installer $installerVer ..." -ForegroundColor Cyan
 
 # ---- signing certificate (create if missing) ----

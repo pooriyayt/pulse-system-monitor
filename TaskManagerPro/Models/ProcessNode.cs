@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
@@ -19,6 +19,8 @@ namespace TaskManagerPro.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         public int Pid { get; set; }
+        /// <summary>نام خام فایل اجرایی (برای منطق برنامه؛ Name نام نمایشی است)</summary>
+        public string ExeName { get; set; } = "";
         public string? Path { get; set; }
 
         /// <summary>true یعنی این ردیف یک گروه است (Apps / Background processes / Windows processes)</summary>
@@ -49,14 +51,14 @@ namespace TaskManagerPro.Models
         public double Cpu
         {
             get => _cpu;
-            set { _cpu = value; On(nameof(CpuText)); }
+            set { _cpu = value; On(nameof(CpuText)); On(nameof(CpuHeat)); }
         }
 
         private double _memoryMB;
         public double MemoryMB
         {
             get => _memoryMB;
-            set { _memoryMB = value; On(nameof(MemText)); }
+            set { _memoryMB = value; On(nameof(MemText)); On(nameof(MemHeat)); }
         }
 
         private double _diskMBs;
@@ -64,7 +66,7 @@ namespace TaskManagerPro.Models
         public double DiskMBs
         {
             get => _diskMBs;
-            set { _diskMBs = value; On(nameof(DiskText)); }
+            set { _diskMBs = value; On(nameof(DiskText)); On(nameof(DiskHeat)); }
         }
 
         private double _netKBs = -1;
@@ -80,7 +82,7 @@ namespace TaskManagerPro.Models
         public double GpuPercent
         {
             get => _gpuPercent;
-            set { _gpuPercent = value; On(nameof(GpuText)); }
+            set { _gpuPercent = value; On(nameof(GpuText)); On(nameof(GpuHeat)); }
         }
 
         private bool _isEco;
@@ -112,6 +114,37 @@ namespace TaskManagerPro.Models
 
         public Visibility FallbackVisibility => Icon == null ? Visibility.Visible : Visibility.Collapsed;
 
+        // ---------- نقشه‌ی حرارتی ستون‌ها (مثل Task Manager ویندوز) ----------
+
+        private static SolidColorBrush[]? _heat;
+
+        /// <summary>رنگ پس‌زمینه‌ی خانه بر اساس شدت مصرف (۰ تا ۱)</summary>
+        private Brush? Heat(double level)
+        {
+            if (IsGroup || double.IsNaN(level) || level < 0.02) return null;
+            _heat ??= BuildHeat();
+            int i = (int)System.Math.Round(System.Math.Clamp(level, 0, 1) * (_heat.Length - 1));
+            return _heat[i];
+        }
+
+        private static SolidColorBrush[] BuildHeat()
+        {
+            // تنت ملایم رنگ Accent (به‌جای قهوه‌ای) — هرچه مصرف بیشتر، پررنگ‌تر
+            var c = Helpers.ColorUtil.FromHex(Helpers.AppSettings.AccentColor);
+            var arr = new SolidColorBrush[12];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                double t = i / (double)(arr.Length - 1);
+                arr[i] = new SolidColorBrush(Windows.UI.Color.FromArgb((byte)(18 + 90 * t), c.R, c.G, c.B));
+            }
+            return arr;
+        }
+
+        public Brush? CpuHeat => Heat(_cpu / 50.0);
+        public Brush? MemHeat => Heat(_memoryMB / 2048.0);
+        public Brush? DiskHeat => Heat(_diskMBs / 40.0);
+        public Brush? GpuHeat => Heat(_gpuPercent / 60.0);
+
         /// <summary>گروه‌ها با فونت ضخیم‌تر نمایش داده می‌شوند</summary>
         public FontWeight NameWeight => IsGroup ? FontWeights.SemiBold : FontWeights.Normal;
 
@@ -122,7 +155,7 @@ namespace TaskManagerPro.Models
         public string CpuText => IsGroup ? "" : Cpu.ToString("F1") + " %";
         public string MemText => IsGroup ? "" : MemoryMB.ToString("F0") + " MB";
         public string DiskText => IsGroup ? "" : (DiskMBs >= 0.05 ? DiskMBs.ToString("F1") + " MB/s" : "0 MB/s");
-        public string NetText => IsGroup ? "" : (NetKBs < 0 ? "\uD83D\uDD12" : FormatNet(NetKBs));
+        public string NetText => IsGroup ? "" : (NetKBs < 0 ? "\u2014" : FormatNet(NetKBs));
         public string GpuText => IsGroup ? "" : (GpuPercent >= 0.5 ? GpuPercent.ToString("F0") + " %" : "0 %");
 
         private static string FormatNet(double kbs) =>

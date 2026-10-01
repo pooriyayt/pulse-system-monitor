@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="TaskManagerPro.Views.PerformancePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,10 +6,10 @@
     xmlns:controls="using:TaskManagerPro.Controls"
     NavigationCacheMode="Required">
 
-    <Grid Padding="24,16,24,24" RowSpacing="12">
+    <Grid Padding="32,24,32,20" RowSpacing="18">
         <Grid.ChildrenTransitions>
             <TransitionCollection>
-                <EntranceThemeTransition IsStaggeringEnabled="True"/>
+                <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="24"/>
                 <RepositionThemeTransition/>
             </TransitionCollection>
         </Grid.ChildrenTransitions>
@@ -18,13 +18,15 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Spacing="12">
-            <FontIcon Glyph="&#xEC4A;" FontSize="24"
-                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-            <TextBlock x:Name="PerfTitle" Text="Performance" Style="{StaticResource TitleTextBlockStyle}" />
+        <StackPanel Orientation="Horizontal" Spacing="14">
+            <controls:IconBadge Glyph="&#xEC4A;" Size="44" />
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock x:Name="PerfTitle" Text="Performance" Style="{StaticResource PageTitleStyle}" />
+                <TextBlock x:Name="PerfSubtitle" Text="Live graphs, history and sensors for every component" Style="{StaticResource PageSubtitleStyle}" />
+            </StackPanel>
         </StackPanel>
 
-        <Grid Grid.Row="1" ColumnSpacing="16">
+        <Grid Grid.Row="1" ColumnSpacing="20">
             <!-- ریسپانسیو: سایدبار در عرض کم باریک می‌شود -->
             <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup>
@@ -50,41 +52,45 @@
             </Grid.ColumnDefinitions>
 
             <!-- سایدبار قطعات (مثل Task Manager ویندوز) -->
+            <Border Style="{StaticResource TableCardStyle}" Padding="6" VerticalAlignment="Stretch">
             <ListView x:Name="SideList"
                       ItemsSource="{x:Bind Items}"
                       SelectionMode="Single"
                       SelectionChanged="SideList_SelectionChanged">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:PerfSidebarItem">
-                        <Grid ColumnSpacing="12" Padding="4,10">
+                        <Grid ColumnSpacing="12" Padding="2,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="{x:Bind Glyph}" FontSize="20" />
-                            <StackPanel Grid.Column="1" Spacing="2">
+                            <controls:IconBadge Glyph="{x:Bind Glyph}" Size="36" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                                 <TextBlock Text="{x:Bind Title, Mode=OneWay}"
-                                           Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="{x:Bind Subtitle, Mode=OneWay}"
-                                           Opacity="0.7"
-                                           FontSize="12"
+                                           FontWeight="SemiBold"
                                            TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{x:Bind Subtitle, Mode=OneWay}"
+                                           Style="{StaticResource MutedTextStyle}" />
                             </StackPanel>
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+            </Border>
 
             <!-- جزئیات زنده‌ی قطعه‌ی انتخاب‌شده -->
             <ScrollViewer Grid.Column="1">
-                <StackPanel Spacing="16">
+                <StackPanel Spacing="16" Padding="0,0,4,8">
 
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <FontIcon x:Name="DetailIcon" Glyph="&#xE950;" FontSize="28"
-                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        <StackPanel>
-                            <TextBlock x:Name="DetailTitle" Style="{StaticResource SubtitleTextBlockStyle}" />
-                            <TextBlock x:Name="DetailSubtitle" Opacity="0.7" />
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <Grid Width="48" Height="48">
+                            <Border CornerRadius="14" Background="{ThemeResource AccentFillColorDefaultBrush}" Opacity="0.16" />
+                            <FontIcon x:Name="DetailIcon" Glyph="&#xE950;" FontSize="22"
+                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        </Grid>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="DetailTitle" FontFamily="{StaticResource DisplayFont}" FontSize="22" FontWeight="SemiBold" />
+                            <TextBlock x:Name="DetailSubtitle" Style="{StaticResource PageSubtitleStyle}" />
                         </StackPanel>
                     </StackPanel>
 
@@ -95,7 +101,7 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="MainGraphLabel" Opacity="0.7" VerticalAlignment="Center" />
+                                <TextBlock x:Name="MainGraphLabel" Style="{StaticResource CardTitleStyle}" />
                                 <!-- گراف تاریخچه‌دار: زنده / ۱۰ دقیقه / ۱ ساعت -->
                                 <ComboBox x:Name="HistCombo" Grid.Column="1" Width="170"
                                           SelectionChanged="Hist_Changed">
@@ -104,7 +110,7 @@
                                     <ComboBoxItem Content="Last hour" />
                                 </ComboBox>
                             </Grid>
-                            <controls:LiveGraph x:Name="MainGraph" Height="180" />
+                            <controls:LiveGraph x:Name="MainGraph" Height="220" />
                             <!-- اسکرول به عقب در تاریخچه -->
                             <Grid x:Name="HistScrollRow" Visibility="Collapsed" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -113,7 +119,7 @@
                                 </Grid.ColumnDefinitions>
                                 <Slider x:Name="HistSlider" Minimum="0" Maximum="100" Value="100"
                                         ValueChanged="HistSlider_Changed" />
-                                <TextBlock x:Name="HistLabel" Grid.Column="1" Opacity="0.7"
+                                <TextBlock x:Name="HistLabel" Grid.Column="1" Foreground="{ThemeResource PulseMutedTextBrush}"
                                            VerticalAlignment="Center" FontSize="12" />
                             </Grid>
                         </StackPanel>
@@ -124,7 +130,7 @@
                         <StackPanel Spacing="6">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE9D5;" FontSize="14" Opacity="0.7" />
-                                <TextBlock x:Name="TopTitle" Text="Top processes" Opacity="0.7" />
+                                <TextBlock x:Name="TopTitle" Style="{StaticResource EyebrowStyle}" Text="Top processes" VerticalAlignment="Center" />
                             </StackPanel>
                             <StackPanel x:Name="TopPanel" Spacing="4" />
                         </StackPanel>
@@ -137,7 +143,7 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="SecondGraphLabel" Opacity="0.7" VerticalAlignment="Center" />
+                                <TextBlock x:Name="SecondGraphLabel" Style="{StaticResource CardTitleStyle}" />
                                 <!-- گراف دوم (آپلود) تاریخچه‌ی مستقل خودش را دارد -->
                                 <ComboBox x:Name="SecondHistCombo" Grid.Column="1" Width="170"
                                           Visibility="Collapsed"
@@ -147,7 +153,7 @@
                                     <ComboBoxItem Content="Last hour" />
                                 </ComboBox>
                             </Grid>
-                            <controls:LiveGraph x:Name="SecondGraph" Height="140" />
+                            <controls:LiveGraph x:Name="SecondGraph" Height="160" />
                             <!-- اسکرول به عقب در تاریخچه‌ی گراف دوم (آپلود) -->
                             <Grid x:Name="SecondHistRow" Visibility="Collapsed" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -156,7 +162,7 @@
                                 </Grid.ColumnDefinitions>
                                 <Slider x:Name="SecondHistSlider" Minimum="0" Maximum="100" Value="100"
                                         ValueChanged="SecondHistSlider_Changed" />
-                                <TextBlock x:Name="SecondHistLabel" Grid.Column="1" Opacity="0.7"
+                                <TextBlock x:Name="SecondHistLabel" Grid.Column="1" Foreground="{ThemeResource PulseMutedTextBrush}"
                                            VerticalAlignment="Center" FontSize="12" />
                             </Grid>
                         </StackPanel>
@@ -167,7 +173,7 @@
                         <StackPanel Spacing="6">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE898;" FontSize="14" Opacity="0.7" />
-                                <TextBlock x:Name="SecondTopTitle" Text="Top processes — Upload" Opacity="0.7" />
+                                <TextBlock x:Name="SecondTopTitle" Style="{StaticResource EyebrowStyle}" Text="Top processes — Upload" VerticalAlignment="Center" />
                             </StackPanel>
                             <StackPanel x:Name="SecondTopPanel" Spacing="4" />
                         </StackPanel>
@@ -186,19 +192,19 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <StackPanel Spacing="8">
-                                <TextBlock x:Name="Eng0Label" Text="3D" Opacity="0.7" />
+                                <TextBlock x:Name="Eng0Label" Style="{StaticResource EyebrowStyle}" Text="3D"  />
                                 <controls:LiveGraph x:Name="Eng0Graph" Height="90" />
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="8">
-                                <TextBlock x:Name="Eng1Label" Text="Copy" Opacity="0.7" />
+                                <TextBlock x:Name="Eng1Label" Style="{StaticResource EyebrowStyle}" Text="Copy"  />
                                 <controls:LiveGraph x:Name="Eng1Graph" Height="90" />
                             </StackPanel>
                             <StackPanel Grid.Row="1" Spacing="8">
-                                <TextBlock x:Name="Eng2Label" Text="Video Decode" Opacity="0.7" />
+                                <TextBlock x:Name="Eng2Label" Style="{StaticResource EyebrowStyle}" Text="Video Decode"  />
                                 <controls:LiveGraph x:Name="Eng2Graph" Height="90" />
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="1" Spacing="8">
-                                <TextBlock x:Name="Eng3Label" Text="Video Processing" Opacity="0.7" />
+                                <TextBlock x:Name="Eng3Label" Style="{StaticResource EyebrowStyle}" Text="Video Processing"  />
                                 <controls:LiveGraph x:Name="Eng3Graph" Height="90" />
                             </StackPanel>
                         </Grid>
@@ -216,20 +222,31 @@
                     <Border x:Name="StatsCard" Style="{StaticResource CardBorderStyle}">
                         <VariableSizedWrapGrid x:Name="StatsPanel"
                                                Orientation="Horizontal"
-                                               ItemWidth="180"
-                                               ItemHeight="64" />
+                                               ItemWidth="190"
+                                               ItemHeight="68" />
+                    </Border>
+
+                    <!-- ماژول‌های رم نصب‌شده -->
+                    <Border x:Name="ModulesCard" Style="{StaticResource CardBorderStyle}" Visibility="Collapsed">
+                        <StackPanel Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xEEA0;" FontSize="14" Opacity="0.7" />
+                                <TextBlock x:Name="ModulesTitle" Text="Installed memory modules" Style="{StaticResource EyebrowStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel x:Name="ModulesPanel" Spacing="8" />
+                        </StackPanel>
                     </Border>
 
                     <Border x:Name="CoresCard" Style="{StaticResource CardBorderStyle}" Visibility="Collapsed">
                         <StackPanel Spacing="8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE950;" FontSize="14" Opacity="0.7" />
-                                <TextBlock x:Name="LogicalProcLabel" Text="Logical processors" Opacity="0.7" />
+                                <TextBlock x:Name="LogicalProcLabel" Style="{StaticResource EyebrowStyle}" Text="Logical processors" VerticalAlignment="Center" />
                             </StackPanel>
                             <VariableSizedWrapGrid x:Name="CoresPanel"
                                                    Orientation="Horizontal"
-                                                   ItemWidth="150"
-                                                   ItemHeight="46" />
+                                                   ItemWidth="120"
+                                                   ItemHeight="42" />
                         </StackPanel>
                     </Border>
 

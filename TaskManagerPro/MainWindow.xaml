@@ -1,13 +1,12 @@
-﻿<Window
+<Window
     x:Class="TaskManagerPro.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TaskManagerPro"
+    xmlns:controls="using:TaskManagerPro.Controls">
 
-    <!-- KeyboardAcceleratorPlacementMode=Hidden: وگرنه ویندوز روی کل پنجره
-         (چون شورتکات‌ها روی همین Grid ریشه نشسته‌اند) تولتیپ «Ctrl+1» را
-         زیر ماوس نشان می‌دهد؛ شورتکات‌ها بدون تولتیپ هم کار می‌کنند. -->
-    <Grid KeyboardAcceleratorPlacementMode="Hidden">
-        <!-- هات‌کی‌های داخل برنامه: Ctrl+1 تا Ctrl+8 برای جابه‌جایی بین تب‌ها -->
+    <Grid x:Name="RootGrid" KeyboardAcceleratorPlacementMode="Hidden">
+        <!-- Ctrl+1..8 بین بخش‌ها، Ctrl+K جستجوی سراسری، Ctrl+B نمایش/پنهان سایدبار -->
         <Grid.KeyboardAccelerators>
             <KeyboardAccelerator Key="Number1" Modifiers="Control" Invoked="Tab1_Invoked" />
             <KeyboardAccelerator Key="Number2" Modifiers="Control" Invoked="Tab2_Invoked" />
@@ -17,91 +16,235 @@
             <KeyboardAccelerator Key="Number6" Modifiers="Control" Invoked="Tab6_Invoked" />
             <KeyboardAccelerator Key="Number7" Modifiers="Control" Invoked="Tab7_Invoked" />
             <KeyboardAccelerator Key="Number8" Modifiers="Control" Invoked="Tab8_Invoked" />
+            <KeyboardAccelerator Key="K" Modifiers="Control" Invoked="Palette_Invoked" />
+            <KeyboardAccelerator Key="B" Modifiers="Control" Invoked="Sidebar_Invoked" />
         </Grid.KeyboardAccelerators>
 
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="SidebarColumn" Width="252" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <!-- ردیف اول: نوار عنوان سفارشی -->
-            <RowDefinition Height="48" />
-            <!-- ردیف دوم: بقیه‌ی پنجره -->
+            <RowDefinition Height="52" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- نوار عنوان: آیکون و اسم برنامه -->
-        <StackPanel x:Name="AppTitleBar"
-                    Grid.Row="0"
-                    Orientation="Horizontal"
-                    VerticalAlignment="Center"
-                    Padding="16,0">
-            <FontIcon Glyph="&#xE9D9;" FontSize="16"
-                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-            <TextBlock Text="Pulse"
-                       Margin="12,0,0,0"
-                       VerticalAlignment="Center"
-                       Style="{StaticResource CaptionTextBlockStyle}" />
-        </StackPanel>
+        <!-- درخشش ملایم رنگ Accent (عمق) -->
+        <Rectangle x:Name="AmbientGlow" Grid.ColumnSpan="2" Grid.RowSpan="2"
+                   Height="520" VerticalAlignment="Top" IsHitTestVisible="False" />
 
-        <!-- Sidebar ناوبری (مثل Task Manager ویندوز 11) -->
-        <NavigationView x:Name="NavView"
-                        Grid.Row="1"
-                        PaneDisplayMode="Auto"
-                        IsBackButtonVisible="Collapsed"
-                        IsSettingsVisible="True"
-                        OpenPaneLength="220"
-                        SelectionChanged="NavView_SelectionChanged"
-                        Loaded="NavView_Loaded">
+        <!-- ناحیه‌ی درگ پنجره (کل نوار بالا) -->
+        <Grid x:Name="AppTitleBar" Grid.ColumnSpan="2" Background="Transparent" />
 
-            <NavigationView.MenuItems>
-                <NavigationViewItem Content="Overview" Tag="overview">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE9D9;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+        <!-- ================= سایدبار شیشه‌ای شناور ================= -->
+        <Border x:Name="Sidebar" Grid.RowSpan="2" Margin="8,8,0,8"
+                CornerRadius="16"
+                Background="{ThemeResource PulseSidebarBrush}"
+                BorderBrush="{ThemeResource PulseCardStrokeBrush}"
+                BorderThickness="1">
+            <Grid Padding="10,14,10,10" RowSpacing="6">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-                <NavigationViewItem Content="Performance" Tag="performance">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xEC4A;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+                <!-- برند -->
+                <StackPanel x:Name="Brand" Orientation="Horizontal" Spacing="10" Margin="8,2,0,10">
+                    <controls:IconBadge Glyph="&#xE9D9;" Size="30" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Pulse" FontFamily="{StaticResource DisplayFont}" FontSize="16" FontWeight="Bold" />
+                        <TextBlock x:Name="VersionText" Text="2.3" FontSize="11" Foreground="{ThemeResource PulseMutedTextBrush}" />
+                    </StackPanel>
+                </StackPanel>
 
-                <NavigationViewItem Content="Processes" Tag="processes">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE9F5;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+                <!-- آیتم‌ها در کد ساخته می‌شوند -->
+                <Grid Grid.Row="1">
+                <ScrollViewer x:Name="NavScroller" VerticalScrollBarVisibility="Hidden" VerticalScrollMode="Auto"
+                              ViewChanged="NavScroller_ViewChanged" SizeChanged="NavScroller_SizeChanged">
+                    <Grid x:Name="NavHost">
+                        <!-- قطره‌ی شیشه‌ای انتخاب: بین آیتم‌ها با فنر می‌لغزد -->
+                        <!-- کپسول شیشه‌ی مایع (Liquid Glass): شفاف، لبه‌ی براق، بین آیتم‌ها با فنر حرکت می‌کند -->
+                        <Grid x:Name="Droplet" Height="38" VerticalAlignment="Top" IsHitTestVisible="False" Opacity="0">
+                            <!-- سایه‌ی نرم دور شیشه -->
+                            <Border CornerRadius="12" Margin="-1" BorderThickness="1" BorderBrush="#1F000000" />
+                            <!-- بدنه‌ی شفاف -->
+                            <Border x:Name="DropletFill" CornerRadius="12" Background="{ThemeResource PulseGlassFillBrush}" />
+                            <!-- لبه‌ی براق (نور از بالا-چپ) -->
+                            <Border CornerRadius="12" BorderThickness="1.3" BorderBrush="{ThemeResource PulseGlassRimBrush}" />
+                            <!-- درخشش داخلی بالا -->
+                            <Border CornerRadius="11" Margin="1.3" BorderThickness="0,1,0,0">
+                                <Border.BorderBrush>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Offset="0" Color="#00FFFFFF" />
+                                        <GradientStop Offset="0.3" Color="#40FFFFFF" />
+                                        <GradientStop Offset="0.7" Color="#40FFFFFF" />
+                                        <GradientStop Offset="1" Color="#00FFFFFF" />
+                                    </LinearGradientBrush>
+                                </Border.BorderBrush>
+                            </Border>
+                            <!-- لکه‌ی نور براق که هنگام حرکت پررنگ می‌شود -->
+                            <Ellipse x:Name="DropletSpecular" Width="70" Height="18" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                     Margin="14,1,0,0" Opacity="0.35">
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush>
+                                        <GradientStop Offset="0" Color="#66FFFFFF" />
+                                        <GradientStop Offset="1" Color="#00FFFFFF" />
+                                    </RadialGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </Grid>
+                        <StackPanel x:Name="NavPanel" Spacing="1" />
+                    </Grid>
+                </ScrollViewer>
 
-                <NavigationViewItem Content="Startup Apps" Tag="startup">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE945;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+                <!-- نشانگر «موارد بیشتر»: سایه‌ی محو لبه + دکمه‌ی فلش (فقط وقتی واقعاً جای اسکرول هست) -->
+                <Rectangle x:Name="NavFadeTop" Height="22" VerticalAlignment="Top" IsHitTestVisible="False" Opacity="0">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0" Color="#40000000" />
+                            <GradientStop Offset="1" Color="#00000000" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <Rectangle x:Name="NavFadeBottom" Height="34" VerticalAlignment="Bottom" IsHitTestVisible="False" Opacity="0">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0" Color="#00000000" />
+                            <GradientStop Offset="1" Color="#4D000000" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <Button x:Name="NavMoreBtn" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,2"
+                        Height="22" Padding="10,0" CornerRadius="11" Opacity="0" IsHitTestVisible="False"
+                        Background="{ThemeResource PulseCardHoverBrush}" BorderBrush="{ThemeResource PulseCardStrokeBrush}"
+                        Click="NavMore_Click" ToolTipService.ToolTip="More">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock x:Name="NavMoreText" Text="More" FontSize="11" />
+                        <FontIcon Glyph="&#xE70D;" FontSize="9" />
+                    </StackPanel>
+                </Button>
+                </Grid>
 
-                <NavigationViewItem Content="Services" Tag="services">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE912;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+                <!-- ویجت زنده‌ی کوچک + وضعیت دسترسی + تنظیمات -->
+                <StackPanel Grid.Row="2" Spacing="8">
+                    <Border CornerRadius="12" Padding="12,10" Background="{ThemeResource PulseSurfaceBrush}">
+                        <StackPanel Spacing="8" FlowDirection="LeftToRight">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="36" /><ColumnDefinition Width="*" /><ColumnDefinition Width="36" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="CPU" FontSize="11" Foreground="{ThemeResource PulseMutedTextBrush}" />
+                                <ProgressBar x:Name="CpuMini" Grid.Column="1" Maximum="100" VerticalAlignment="Center" />
+                                <TextBlock x:Name="CpuChipText" Grid.Column="2" Text="—" FontSize="11" FontWeight="SemiBold" TextAlignment="Right" />
+                            </Grid>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="36" /><ColumnDefinition Width="*" /><ColumnDefinition Width="36" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="RAM" FontSize="11" Foreground="{ThemeResource PulseMutedTextBrush}" />
+                                <ProgressBar x:Name="RamMini" Grid.Column="1" Maximum="100" VerticalAlignment="Center" />
+                                <TextBlock x:Name="RamChipText" Grid.Column="2" Text="—" FontSize="11" FontWeight="SemiBold" TextAlignment="Right" />
+                            </Grid>
+                            <Grid x:Name="GpuChip" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="36" /><ColumnDefinition Width="*" /><ColumnDefinition Width="36" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="GPU" FontSize="11" Foreground="{ThemeResource PulseMutedTextBrush}" />
+                                <ProgressBar x:Name="GpuMini" Grid.Column="1" Maximum="100" VerticalAlignment="Center" />
+                                <TextBlock x:Name="GpuChipText" Grid.Column="2" Text="—" FontSize="11" FontWeight="SemiBold" TextAlignment="Right" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
 
-                <NavigationViewItem Content="Memory Optimizer" Tag="memopt">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xEEA0;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="8,0,0,0">
+                        <Ellipse x:Name="AdminDot" Width="7" Height="7" VerticalAlignment="Center" />
+                        <TextBlock x:Name="AdminTitle" FontSize="11" Foreground="{ThemeResource PulseMutedTextBrush}" />
+                    </StackPanel>
 
-                <NavigationViewItem Content="Network Connections" Tag="network">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE968;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+                    <RadioButton x:Name="SettingsItem" GroupName="Nav" Tag="settings"
+                                 Style="{StaticResource SidebarItemStyle}" Checked="NavItem_Checked" />
+                </StackPanel>
+            </Grid>
+        </Border>
 
-                <NavigationViewItem Content="File Unlocker" Tag="unlocker">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE785;" />
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-            </NavigationView.MenuItems>
+        <!-- ================= نوار ابزار بالای محتوا ================= -->
+        <Grid x:Name="Toolbar" Grid.Column="1" Padding="12,0,0,0" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition x:Name="CaptionInsetColumn" Width="140" />
+            </Grid.ColumnDefinitions>
 
-            <!-- محل نمایش صفحات با انیمیشن جابه‌جایی -->
+            <Button x:Name="SidebarToggle" Style="{StaticResource GhostIconButtonStyle}"
+                    VerticalAlignment="Center" Click="SidebarToggle_Click"
+                    ToolTipService.ToolTip="Hide sidebar (Ctrl+B)">
+                <FontIcon x:Name="SidebarToggleIcon" Glyph="&#xE76B;" FontSize="14" />
+            </Button>
+
+            <!-- جستجوی سراسری (Spotlight) -->
+            <AutoSuggestBox x:Name="PaletteBox"
+                            Grid.Column="2"
+                            Width="300"
+                            VerticalAlignment="Center"
+                            CornerRadius="10"
+                            Height="34"
+                            PlaceholderText="Search   Ctrl+K"
+                            QueryIcon="Find"
+                            UpdateTextOnSelect="False"
+                            TextChanged="Palette_TextChanged"
+                            QuerySubmitted="Palette_QuerySubmitted"
+                            GotFocus="Palette_GotFocus">
+                <AutoSuggestBox.Resources>
+                    <!-- فیلد صاف و یکدست مثل Spotlight: بدون خط زیر و قاب -->
+                    <StaticResource x:Key="TextControlBackground" ResourceKey="PulseFieldBrush" />
+                    <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="PulseCardHoverBrush" />
+                    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="PulseCardHoverBrush" />
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#55FFFFFF" />
+                    <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+                </AutoSuggestBox.Resources>
+                <AutoSuggestBox.ItemTemplate>
+                    <DataTemplate x:DataType="local:PaletteItem">
+                        <Grid ColumnSpacing="12" Padding="0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <controls:IconBadge Glyph="{x:Bind Glyph}" Size="28" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold" />
+                                <TextBlock Text="{x:Bind Hint}" Style="{StaticResource MutedTextStyle}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="{x:Bind Shortcut}" VerticalAlignment="Center"
+                                       Style="{StaticResource MutedTextStyle}" />
+                        </Grid>
+                    </DataTemplate>
+                </AutoSuggestBox.ItemTemplate>
+            </AutoSuggestBox>
+        </Grid>
+
+        <!-- اسپات‌لایت تور: بقیه‌ی برنامه تیره می‌شود و قاب درخشان دور بخش معرفی‌شده می‌لغزد -->
+        <Canvas x:Name="Spotlight" Grid.RowSpan="2" Grid.ColumnSpan="2" Visibility="Collapsed">
+            <Path x:Name="SpotDim" Fill="#A6000000" />
+            <Border x:Name="SpotGlow" CornerRadius="16" BorderThickness="6" Opacity="0.35" />
+            <Border x:Name="SpotRing" CornerRadius="14" BorderThickness="2" />
+        </Canvas>
+
+        <!-- تور معرفی طراحی جدید -->
+        <TeachingTip x:Name="TourTip" PreferredPlacement="Auto" IsLightDismissEnabled="False"
+                     ActionButtonClick="TourTip_Next" CloseButtonClick="TourTip_Close" />
+
+        <!-- محتوای صفحات -->
+        <Border x:Name="ContentPanel" Grid.Row="1" Grid.Column="1" Margin="8,0,8,8"
+                CornerRadius="16"
+                Background="{ThemeResource PulseContentBackdropBrush}"
+                BorderBrush="{ThemeResource PulseCardStrokeBrush}"
+                BorderThickness="1">
             <Frame x:Name="ContentFrame" />
-        </NavigationView>
+        </Border>
     </Grid>
 </Window>

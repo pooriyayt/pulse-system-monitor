@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.Storage;
@@ -163,7 +163,7 @@ namespace TaskManagerPro.Helpers
             get => _trayStyle;
             set
             {
-                value = Math.Clamp(value, 0, 2);
+                value = Math.Clamp(value, 0, 3);
                 if (_trayStyle == value) return;
                 _trayStyle = value;
                 Save();
@@ -223,7 +223,7 @@ namespace TaskManagerPro.Helpers
         {
             try
             {
-                if (ApplicationData.Current.LocalSettings.Values.TryGetValue($"TrayC{metric}", out var v) &&
+                if (SettingsStore.Values.TryGetValue($"TrayC{metric}", out var v) &&
                     v is string s && s.StartsWith('#'))
                     return s;
             }
@@ -233,7 +233,7 @@ namespace TaskManagerPro.Helpers
 
         public static void SetTrayIconColor(int metric, string hex)
         {
-            try { ApplicationData.Current.LocalSettings.Values[$"TrayC{metric}"] = hex ?? ""; } catch { }
+            try { SettingsStore.Values[$"TrayC{metric}"] = hex ?? ""; } catch { }
             TraySettingsChanged?.Invoke();
         }
 
@@ -242,8 +242,8 @@ namespace TaskManagerPro.Helpers
         {
             try
             {
-                if (ApplicationData.Current.LocalSettings.Values.TryGetValue($"TrayS{metric}", out var v) && v is int i)
-                    return Math.Clamp(i, -1, 2);
+                if (SettingsStore.Values.TryGetValue($"TrayS{metric}", out var v) && v is int i)
+                    return Math.Clamp(i, -1, 3);
             }
             catch { }
             return -1;
@@ -251,7 +251,7 @@ namespace TaskManagerPro.Helpers
 
         public static void SetTrayIconStyle(int metric, int style)
         {
-            try { ApplicationData.Current.LocalSettings.Values[$"TrayS{metric}"] = Math.Clamp(style, -1, 2); } catch { }
+            try { SettingsStore.Values[$"TrayS{metric}"] = Math.Clamp(style, -1, 3); } catch { }
             TraySettingsChanged?.Invoke();
         }
 
@@ -260,7 +260,7 @@ namespace TaskManagerPro.Helpers
         {
             try
             {
-                if (ApplicationData.Current.LocalSettings.Values.TryGetValue($"TrayZ{metric}", out var v) && v is int i)
+                if (SettingsStore.Values.TryGetValue($"TrayZ{metric}", out var v) && v is int i)
                     return i < 0 ? -1 : Math.Clamp(i, 75, 150);
             }
             catch { }
@@ -269,7 +269,7 @@ namespace TaskManagerPro.Helpers
 
         public static void SetTrayIconScale(int metric, int scale)
         {
-            try { ApplicationData.Current.LocalSettings.Values[$"TrayZ{metric}"] = scale < 0 ? -1 : Math.Clamp(scale, 75, 150); } catch { }
+            try { SettingsStore.Values[$"TrayZ{metric}"] = scale < 0 ? -1 : Math.Clamp(scale, 75, 150); } catch { }
             TraySettingsChanged?.Invoke();
         }
 
@@ -341,13 +341,51 @@ namespace TaskManagerPro.Helpers
             set { if (_endTaskSound == value) return; _endTaskSound = value; Save(); }
         }
 
+        // ---------- ظاهر رابط (مدرن / کلاسیک) ----------
+
+        private static int _uiStyle;
+        /// <summary>0 = ظاهر جدید (مدرن)، 1 = ظاهر کلاسیک — بعد از اجرای دوباره اعمال می‌شود</summary>
+        public static int UiStyle
+        {
+            get => _uiStyle;
+            set { value = Math.Clamp(value, 0, 1); if (_uiStyle == value) return; _uiStyle = value; Save(); }
+        }
+
+        /// <summary>ظاهری که همین الان (در شروع برنامه) فعال شده است</summary>
+        public static bool ModernUi { get; set; } = true;
+
+        private static bool _tourSeen;
+        /// <summary>آیا خوش‌آمدگویی و تور طراحی جدید یک بار نشان داده شده؟</summary>
+        public static bool TourSeen
+        {
+            get => _tourSeen;
+            set { if (_tourSeen == value) return; _tourSeen = value; Save(); }
+        }
+
+        // ---------- بهینه‌سازی خودکار حافظه ----------
+
+        private static bool _autoOptimize;
+        public static bool AutoOptimize
+        {
+            get => _autoOptimize;
+            set { if (_autoOptimize == value) return; _autoOptimize = value; Save(); }
+        }
+
+        private static int _autoOptimizeLimit = 85;
+        /// <summary>وقتی مصرف رم از این درصد بیشتر شد، خودکار بهینه‌سازی شود</summary>
+        public static int AutoOptimizeLimit
+        {
+            get => _autoOptimizeLimit;
+            set { value = Math.Clamp(value, 60, 95); if (_autoOptimizeLimit == value) return; _autoOptimizeLimit = value; Save(); }
+        }
+
         // ---------- ذخیره و بازیابی ----------
 
         public static void Load()
         {
             try
             {
-                var s = ApplicationData.Current.LocalSettings.Values;
+                var s = SettingsStore.Values;
 
                 if (s.TryGetValue("RefreshMs", out var refresh) && refresh is int r)
                     _refreshIntervalMs = Math.Clamp(r, 500, 2000);
@@ -374,7 +412,7 @@ namespace TaskManagerPro.Helpers
                     _trayMetricsCsv = Math.Clamp(tmi, 0, 3).ToString(); // سازگاری با نسخه‌ی 1.3
 
                 if (s.TryGetValue("TrayStyle", out var ts) && ts is int tsi)
-                    _trayStyle = Math.Clamp(tsi, 0, 2);
+                    _trayStyle = Math.Clamp(tsi, 0, 3);
 
                 if (s.TryGetValue("TrayScale", out var tsc) && tsc is int tsci)
                     _trayTextScale = Math.Clamp(tsci, 75, 150);
@@ -392,6 +430,10 @@ namespace TaskManagerPro.Helpers
                 if (s.TryGetValue("WidgetOn", out var wg) && wg is bool wb) _widgetEnabled = wb;
                 if (s.TryGetValue("Lang", out var lg) && lg is int lgi) _language = Math.Clamp(lgi, 0, 4);
                 if (s.TryGetValue("EndSound", out var es) && es is bool esb) _endTaskSound = esb;
+                if (s.TryGetValue("TourSeen", out var tsn) && tsn is bool tsb) _tourSeen = tsb;
+                if (s.TryGetValue("UiStyle", out var us) && us is int usi) _uiStyle = Math.Clamp(usi, 0, 1);
+                if (s.TryGetValue("AutoOpt", out var ao) && ao is bool aob) _autoOptimize = aob;
+                if (s.TryGetValue("AutoOptLimit", out var aol) && aol is int aoli) _autoOptimizeLimit = Math.Clamp(aoli, 60, 95);
             }
             catch
             {
@@ -403,7 +445,7 @@ namespace TaskManagerPro.Helpers
         {
             try
             {
-                var s = ApplicationData.Current.LocalSettings.Values;
+                var s = SettingsStore.Values;
                 s["RefreshMs"] = _refreshIntervalMs;
                 s["Theme"] = (int)_theme;
                 s["Accent"] = _accentColor;
@@ -422,6 +464,10 @@ namespace TaskManagerPro.Helpers
                 s["WidgetOn"] = _widgetEnabled;
                 s["Lang"] = _language;
                 s["EndSound"] = _endTaskSound;
+                s["UiStyle"] = _uiStyle;
+                s["TourSeen"] = _tourSeen;
+                s["AutoOpt"] = _autoOptimize;
+                s["AutoOptLimit"] = _autoOptimizeLimit;
             }
             catch
             {

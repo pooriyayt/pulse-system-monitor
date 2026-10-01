@@ -1,0 +1,12 @@
+<UserControl
+    x:Class="TaskManagerPro.Controls.RingGauge"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    IsTabStop="False">
+    <Grid x:Name="Root" SizeChanged="Root_SizeChanged" FlowDirection="LeftToRight">
+        <!-- مسیر پس‌زمینه‌ی حلقه -->
+        <Ellipse x:Name="Track" Stroke="{ThemeResource PulseTrackBrush}" />
+        <!-- کمان مقدار -->
+        <Path x:Name="Arc" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+    </Grid>
+</UserControl>

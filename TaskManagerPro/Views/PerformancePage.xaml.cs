@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -52,6 +52,7 @@ namespace TaskManagerPro.Views
         private void ApplyL10n()
         {
             PerfTitle.Text = L10n.T("Performance");
+            PerfSubtitle.Text = L10n.T("Live graphs, history and sensors for every component");
             LogicalProcLabel.Text = L10n.T("Logical processors");
             foreach (var combo in new[] { HistCombo, SecondHistCombo })
             {
@@ -191,6 +192,7 @@ namespace TaskManagerPro.Views
             SecondHistRow.Visibility = Visibility.Collapsed;
             EnginesCard.Visibility = Visibility.Collapsed;
             SensorsCard.Visibility = Visibility.Collapsed;
+            ModulesCard.Visibility = Visibility.Collapsed;
 
             // واحد پیش‌فرض اعداد محور (برای هر قطعه پایین‌تر تنظیم می‌شود)
             MainGraph.Unit = TaskManagerPro.Controls.GraphUnit.Percent;
@@ -232,12 +234,16 @@ namespace TaskManagerPro.Views
                     MainGraph.MaxValue = 100;
                     MainGraphLabel.Text = L10n.T("% Utilization");
                     CoresCard.Visibility = Visibility.Visible;
+                    if (_cpuInfo == null)
+                        _ = Task.Run(Monitoring.CpuHardware.GetInfo).ContinueWith(t =>
+                            DispatcherQueue.TryEnqueue(() => _cpuInfo = t.Result), TaskScheduler.Default);
                     break;
 
                 case "memory":
                     MainGraph.AutoScale = false;
                     MainGraph.MaxValue = 100;
                     MainGraphLabel.Text = L10n.T("Memory usage (%)");
+                    _ = LoadRamInfoAsync();
                     break;
 
                 case "gpu":
@@ -246,6 +252,9 @@ namespace TaskManagerPro.Views
                         _ = Task.Run(SensorMonitor.Start);
                     int gi = GpuIndex(item.Key);
                     DetailSubtitle.Text = gi < _gpuNames.Count ? _gpuNames[gi] : "";
+                    if (_gpuStatic == null)
+                        _ = Task.Run(Monitoring.GpuHardware.GetAll).ContinueWith(t =>
+                            DispatcherQueue.TryEnqueue(() => _gpuStatic = t.Result), TaskScheduler.Default);
                     MainGraph.AutoScale = false;
                     MainGraph.MaxValue = 100;
                     MainGraphLabel.Text = L10n.T("% Utilization");
@@ -272,6 +281,12 @@ namespace TaskManagerPro.Views
                     SecondGraphLabel.Text = L10n.T("Transfer rate — Read + Write (MB/s)");
                     // گراف انتقال هم مثل گراف بالا تاریخچه‌ی مستقل دارد
                     SecondHistCombo.Visibility = Visibility.Visible;
+                    if (_diskStatic == null)
+                        _ = Task.Run(Monitoring.DiskHardware.GetAll).ContinueWith(t =>
+                            DispatcherQueue.TryEnqueue(() => _diskStatic = t.Result), TaskScheduler.Default);
+                    // شمارنده‌های سلامت (دما / فرسودگی) با هر بار ورود دوباره خوانده می‌شوند
+                    _ = Task.Run(Monitoring.DiskHardware.GetReliability).ContinueWith(t =>
+                        DispatcherQueue.TryEnqueue(() => _diskRel = t.Result), TaskScheduler.Default);
                     break;
 
                 case "network":
@@ -426,18 +441,38 @@ namespace TaskManagerPro.Views
                         ("Processes", s.ProcessCount >= 0 ? $"{s.ProcessCount:F0}" : "N/A"),
                         ("Threads", s.ThreadCount >= 0 ? $"{s.ThreadCount:F0}" : "N/A"),
                         ("Up time", s.UptimeSeconds > 0 ? FormatUptime(s.UptimeSeconds) : "N/A"),
-                        ("Temperature", s.CpuTempC > 0 ? $"{s.CpuTempC:F0} °C" : "N/A"));
+                        ("Temperature", s.CpuTempC > 0 ? $"{s.CpuTempC:F0} °C" : "N/A"),
+                        ("Base speed", _cpuInfo is { BaseMHz: > 0 } ci1 ? $"{ci1.BaseMHz / 1000.0:F2} GHz" : "N/A"),
+                        ("Sockets", _cpuInfo is { Sockets: > 0 } ci2 ? ci2.Sockets.ToString() : "N/A"),
+                        ("Cores", _cpuInfo is { Cores: > 0 } ci3 ? ci3.Cores.ToString() : "N/A"),
+                        ("Logical processors", _cpuInfo is { LogicalProcessors: > 0 } ci4 ? ci4.LogicalProcessors.ToString() : "N/A"),
+                        ("Virtualization", _cpuInfo is { Virtualization.Length: > 0 } ci5 ? L10n.T(ci5.Virtualization) : "N/A"),
+                        ("L1 cache", _cpuInfo is { L1KB: > 0 } ci6 ? FormatCache(ci6.L1KB) : "N/A"),
+                        ("L2 cache", _cpuInfo is { L2KB: > 0 } ci7 ? FormatCache(ci7.L2KB) : "N/A"),
+                        ("L3 cache", _cpuInfo is { L3KB: > 0 } ci8 ? FormatCache(ci8.L3KB) : "N/A"));
                     UpdateCores(s);
                     break;
 
                 case "memory":
+                {
                     MainGraph.AddValue(s.MemPercent);
+                    var mc = Monitoring.MemoryHardware.GetCounters();
+                    if (_memTick++ % 3 == 0) _compressed = Monitoring.MemoryHardware.GetCompressedBytes();
+                    var ram = _ramInfo;
                     SetStats(
                         ("In use", $"{s.MemUsedGB:F1} GB"),
                         ("Available", $"{s.MemAvailableGB:F1} GB"),
-                        ("Total", $"{s.MemTotalGB:F1} GB"),
+                        ("Committed", mc is { } c1 ? $"{Gb(c1.CommitTotal)} / {Gb(c1.CommitLimit)} GB" : "N/A"),
+                        ("Cached", mc is { } c2 ? $"{Gb(c2.SystemCache)} GB" : "N/A"),
+                        ("Paged pool", mc is { } c3 ? $"{c3.PagedPool / 1048576.0:F0} MB" : "N/A"),
+                        ("Non-paged pool", mc is { } c4 ? $"{c4.NonPagedPool / 1048576.0:F0} MB" : "N/A"),
+                        ("Compressed", _compressed >= 0 ? $"{_compressed / 1048576.0:F0} MB" : "N/A"),
+                        ("Speed", ram != null && ram.SpeedMHz > 0 ? $"{ram.SpeedMHz} MT/s" : "N/A"),
+                        ("Slots used", ram != null && ram.TotalSlots > 0 ? string.Format(L10n.T("{0} of {1}"), ram.UsedSlots, ram.TotalSlots) : "N/A"),
+                        ("Form factor", ram != null && ram.FormFactor.Length > 0 ? ram.FormFactor : "N/A"),
                         ("Page file", $"{s.PageFilePercent:F0}% used"));
                     break;
+                }
 
                 case "gpu":
                 {
@@ -447,10 +482,21 @@ namespace TaskManagerPro.Views
                     UpdateEngine(Eng1Label, Eng1Graph, "Copy", "Copy", g);
                     UpdateEngine(Eng2Label, Eng2Graph, L10n.T("Video Decode"), "VideoDecode", g);
                     UpdateEngine(Eng3Label, Eng3Graph, L10n.T("Video Processing"), "VideoProcessing", g);
+                    int gIdx = GpuIndex(_selectedKey);
+                    var gi = gIdx < _gpuNames.Count && _gpuStatic != null ? FindGpuInfo(_gpuNames[gIdx]) : null;
+                    string dedicated = g == null ? "N/A"
+                        : gi is { DedicatedBytes: > 0 } ? $"{FormatMB(g.DedicatedMB)} / {gi.DedicatedBytes / 1073741824.0:0.#} GB"
+                        : FormatMB(g.DedicatedMB);
                     SetStats(
                         ("Utilization", g != null ? $"{g.UsagePercent:F0}%" : "N/A"),
-                        ("Dedicated memory", g != null ? FormatMB(g.DedicatedMB) : "N/A"),
-                        ("Temperature", s.GpuTempC > 0 ? $"{s.GpuTempC:F0} °C" : "N/A"));
+                        ("Dedicated memory", dedicated),
+                        ("Shared memory", $"{s.MemTotalGB / 2:F1} GB"),
+                        ("Temperature", s.GpuTempC > 0 ? $"{s.GpuTempC:F0} °C" : "N/A"),
+                        ("GPU type", gi != null ? L10n.T(gi.Integrated ? "Integrated" : "Dedicated") : "N/A"),
+                        ("Vendor", gi is { Vendor.Length: > 0 } ? gi.Vendor : "N/A"),
+                        ("Driver version", gi is { DriverVersion.Length: > 0 } ? gi.DriverVersion : "N/A"),
+                        ("Driver date", gi?.DriverDate is DateTime dd ? dd.ToString("yyyy-MM-dd") : "N/A"),
+                        ("Display", gi is { Resolution.Length: > 0 } ? gi.Resolution : L10n.T("Not driving a display")));
                     break;
                 }
 
@@ -463,10 +509,31 @@ namespace TaskManagerPro.Views
 
                     MainGraph.AddValue(active);
                     SecondGraph.AddValue(read + write);
+                    var di = _diskStatic != null && _diskStatic.TryGetValue(DiskIndex(_selectedKey), out var dinfo) ? dinfo : null;
+                    string type = di == null ? "N/A"
+                        : string.Join(" ", new[] { di.Bus, di.MediaType }.Where(x => x.Length > 0)) is { Length: > 0 } t ? t : "N/A";
+                    string link = di is { PcieGen: > 0 }
+                        ? $"PCIe {di.PcieGen}.0" + (di.PcieLanes > 0 ? $" x{di.PcieLanes}" : "")
+                          + (di.PcieMaxGen > di.PcieGen ? "  " + string.Format(L10n.T("(max {0})"), $"{di.PcieMaxGen}.0") : "")
+                        : "N/A";
                     SetStats(
                         ("Active time", $"{active:F0}%"),
                         ("Read speed", $"{read:F1} MB/s"),
-                        ("Write speed", $"{write:F1} MB/s"));
+                        ("Write speed", $"{write:F1} MB/s"),
+                        ("Brand", di is { Brand.Length: > 0 } ? di.Brand : "N/A"),
+                        ("Type", type),
+                        ("Interface", link),
+                        ("Capacity", di is { SizeBytes: > 0 } ? FormatCapacity(di.SizeBytes) : "N/A"),
+                        ("Health", di is { Health.Length: > 0 } ? L10n.T(di.Health) : "N/A"),
+                        ("Firmware", di is { Firmware.Length: > 0 } ? di.Firmware : "N/A"),
+                        ("Rotation speed", di is { SpindleRpm: > 0 } ? $"{di.SpindleRpm} RPM" : (di?.MediaType == "SSD" ? L10n.T("None (SSD)") : "N/A")),
+                        ("Life remaining", RelText(r => r.WearPercent >= 0 ? $"{100 - r.WearPercent}%" : null)),
+                        ("Disk temperature", RelText(r => r.TemperatureC > 0
+                            ? $"{r.TemperatureC} °C" + (r.TemperatureMaxC > 0 ? $"  ({L10n.T("max")} {r.TemperatureMaxC} °C)" : "")
+                            : null)),
+                        ("Power-on hours", RelText(r => r.PowerOnHours >= 0 ? $"{r.PowerOnHours:N0} h" : null)),
+                        ("Read / write errors", RelText(r => r.ReadErrors >= 0 || r.WriteErrors >= 0
+                            ? $"{Math.Max(0, r.ReadErrors)} / {Math.Max(0, r.WriteErrors)}" : null)));
                     break;
                 }
 
@@ -481,16 +548,113 @@ namespace TaskManagerPro.Views
         }
 
         /// <summary>بلوک‌های آمار عددی را بساز/به‌روز کن (عدد بزرگ + برچسب کوچک)</summary>
+        private Monitoring.CpuInfo? _cpuInfo;
+        private Dictionary<int, Monitoring.DiskInfo>? _diskStatic;
+        private Dictionary<int, Monitoring.DiskReliability>? _diskRel;
+
+        /// <summary>
+        /// متن یک شمارنده‌ی سلامت دیسک انتخاب‌شده. بدون دسترسی ادمین ویندوز این اطلاعات را
+        /// نمی‌دهد — به‌جای عدد ساختگی «نیاز به ادمین» نوشته می‌شود.
+        /// </summary>
+        private string RelText(Func<Monitoring.DiskReliability, string?> pick)
+        {
+            if (_diskRel == null) return "…";
+            if (_diskRel.TryGetValue(DiskIndex(_selectedKey), out var r))
+                return pick(r) ?? "N/A";
+            return AdminHelper.IsAdmin ? "N/A" : L10n.T("Needs admin");
+        }
+
+        private static string FormatCapacity(ulong bytes)
+        {
+            // مثل برچسب سازنده (اعشاری): 512 GB، 1 TB
+            double gb = bytes / 1e9;
+            return gb >= 1000 ? $"{gb / 1000:0.##} TB" : $"{gb:0} GB";
+        }
+        private List<Monitoring.GpuInfo>? _gpuStatic;
+
+        private static Monitoring.GpuInfo? FindGpuInfo(string name) => Monitoring.GpuHardware.Find(name);
+
+        private static string FormatCache(uint kb) => kb >= 1024 ? $"{kb / 1024.0:0.#} MB" : $"{kb} KB";
+
+        private Monitoring.RamInfo? _ramInfo;
+        private long _compressed = -1;
+        private int _memTick;
+
+        private static string Gb(ulong bytes) => (bytes / 1073741824.0).ToString("F1");
+
+        /// <summary>مشخصات ثابت رم (نوع، سرعت، اسلات‌ها، ماژول‌ها) — یک بار در پس‌زمینه</summary>
+        private async Task LoadRamInfoAsync()
+        {
+            ModulesCard.Visibility = Visibility.Visible;
+            _ramInfo ??= await Task.Run(Monitoring.MemoryHardware.GetInfo);
+            var info = _ramInfo;
+            if (_selectedKey != "memory") return;
+
+            ulong total = 0;
+            foreach (var m in info.Modules) total += m.CapacityBytes;
+            var parts = new List<string>();
+            if (total > 0) parts.Add($"{total / 1073741824.0:F0} GB");
+            if (info.Type.Length > 0) parts.Add(info.Type);
+            if (info.SpeedMHz > 0) parts.Add($"{info.SpeedMHz} MT/s");
+            if (info.TotalSlots > 0) parts.Add(string.Format(L10n.T("{0} of {1} slots used"), info.UsedSlots, info.TotalSlots));
+            DetailSubtitle.Text = string.Join("  ·  ", parts);
+
+            ModulesTitle.Text = L10n.T("Installed memory modules");
+            ModulesPanel.Children.Clear();
+            for (int i = 0; i < Math.Max(info.TotalSlots, info.Modules.Count); i++)
+            {
+                var row = new Grid { ColumnSpacing = 12 };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                if (i < info.Modules.Count)
+                {
+                    var m = info.Modules[i];
+                    row.Children.Add(new TextBlock { Text = m.Slot.Length > 0 ? m.Slot : $"Slot {i + 1}", Opacity = 0.7, FontSize = 13 });
+                    var mid = new TextBlock
+                    {
+                        Text = string.Join("  ·  ", new[] { m.Manufacturer, m.PartNumber, m.Type, m.FormFactor }.Where(t => t.Length > 0)),
+                        FontSize = 13,
+                        TextTrimming = TextTrimming.CharacterEllipsis,
+                    };
+                    Grid.SetColumn(mid, 1);
+                    row.Children.Add(mid);
+                    uint mhz = m.ConfiguredMHz > 0 ? m.ConfiguredMHz : m.SpeedMHz;
+                    var right = new TextBlock
+                    {
+                        Text = $"{m.CapacityBytes / 1073741824.0:F0} GB" + (mhz > 0 ? $"  ·  {mhz} MT/s" : "")
+                            + (m.SpeedMHz > mhz && mhz > 0 ? "  " + string.Format(L10n.T("(rated {0})"), m.SpeedMHz) : ""),
+                        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                        FontSize = 13,
+                    };
+                    Grid.SetColumn(right, 2);
+                    row.Children.Add(right);
+                }
+                else
+                {
+                    row.Children.Add(new TextBlock { Text = $"Slot {i + 1}", Opacity = 0.7, FontSize = 13 });
+                    var empty = new TextBlock { Text = L10n.T("Empty slot"), Opacity = 0.5, FontSize = 13 };
+                    Grid.SetColumn(empty, 1);
+                    row.Children.Add(empty);
+                }
+                ModulesPanel.Children.Add(row);
+            }
+            if (info.Modules.Count == 0)
+                ModulesPanel.Children.Add(new TextBlock { Text = L10n.T("Module details are not available on this system."), Opacity = 0.6 });
+        }
+
         private void SetStats(params (string Label, string Value)[] stats)
         {
             while (_statValues.Count < stats.Length)
             {
                 var value = new TextBlock
                 {
-                    FontSize = 20,
+                    FontSize = 22,
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    FontFamily = (Microsoft.UI.Xaml.Media.FontFamily)Application.Current.Resources["DisplayFont"],
                 };
-                var label = new TextBlock { FontSize = 12, Opacity = 0.7 };
+                var label = new TextBlock { FontSize = 12, Opacity = 0.65, TextTrimming = Microsoft.UI.Xaml.TextTrimming.CharacterEllipsis };
 
                 var panel = new StackPanel { Spacing = 2 };
                 panel.Children.Add(value);
@@ -594,7 +758,7 @@ namespace TaskManagerPro.Views
 
             while (_topNames.Count < 3)
             {
-                var grid = new Grid();
+                var grid = new Grid { Padding = new Thickness(0, 3, 0, 3) };
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
@@ -628,7 +792,7 @@ namespace TaskManagerPro.Views
 
             while (_topNames2.Count < 3)
             {
-                var grid = new Grid();
+                var grid = new Grid { Padding = new Thickness(0, 3, 0, 3) };
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 

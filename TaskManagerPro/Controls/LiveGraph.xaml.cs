@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -156,8 +156,8 @@ namespace TaskManagerPro.Controls
                 StartPoint = new Point(0, 0),
                 EndPoint = new Point(0, 1),
             };
-            g.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(110, c.R, c.G, c.B), Offset = 0 });
-            g.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(10, c.R, c.G, c.B), Offset = 1 });
+            g.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(170, c.R, c.G, c.B), Offset = 0 });
+            g.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(0, c.R, c.G, c.B), Offset = 1 });
             return g;
         }
 

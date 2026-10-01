@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
@@ -12,6 +12,12 @@ namespace TaskManagerPro.Helpers
         public string LatestVersion = "";
         public string DownloadUrl = "";
         public bool UpdateAvailable;
+        /// <summary>متن «چه چیزی جدید است» از صفحه‌ی Release گیت‌هاب</summary>
+        public string ReleaseNotes = "";
+        /// <summary>حجم فایل نصب (بایت) یا 0</summary>
+        public long SizeBytes;
+        /// <summary>آدرس صفحه‌ی Release</summary>
+        public string PageUrl = "";
     }
 
     /// <summary>
@@ -21,9 +27,19 @@ namespace TaskManagerPro.Helpers
     /// </summary>
     public static class UpdateChecker
     {
-        private const string ApiUrl = "https://api.wl-std.com/TSP/version.php";
+        /// <summary>آخرین Release منتشرشده در مخزن گیت‌هاب برنامه (منبع رسمی و پایدار آپدیت)</summary>
+        private const string ApiUrl = "https://api.github.com/repos/pooriyayt/pulse-system-monitor/releases/latest";
 
-        private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(15) };
+        private static readonly HttpClient Http = CreateHttp();
+
+        private static HttpClient CreateHttp()
+        {
+            var h = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+            // API گیت‌هاب بدون User-Agent درخواست را رد می‌کند
+            h.DefaultRequestHeaders.UserAgent.ParseAdd("Pulse-UpdateChecker");
+            h.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+            return h;
+        }
 
         /// <summary>نسخه‌ی فعلی برنامه (از منیفست پکیج)</summary>
         public static string CurrentVersion
@@ -33,14 +49,15 @@ namespace TaskManagerPro.Helpers
                 try
                 {
                     var v = Windows.ApplicationModel.Package.Current.Id.Version;
-                    return $"{v.Major}.{v.Minor}";
+                    return v.Build > 0 ? $"{v.Major}.{v.Minor}.{v.Build}" : $"{v.Major}.{v.Minor}";
                 }
-                catch { return "2.2"; }
+                catch { return "2.3"; }
             }
         }
 
         /// <summary>
-        /// چک آپدیت از سرور — null یعنی دسترسی نبود یا پاسخ نامعتبر بود (بی‌خیال شو).
+        /// چک آپدیت از Releaseهای گیت‌هاب — null یعنی دسترسی نبود یا پاسخ نامعتبر بود (بی‌خیال شو).
+        /// تگ Release (مثل V2.3) نسخه است و فایل نصب از Assetهای همان Release برداشته می‌شود.
         /// </summary>
         public static async Task<UpdateInfo?> CheckAsync()
         {
@@ -50,23 +67,49 @@ namespace TaskManagerPro.Helpers
                 using var doc = JsonDocument.Parse(json);
                 var root = doc.RootElement;
 
-                if (root.GetProperty("status").GetString() != "success") return null;
+                if (root.TryGetProperty("draft", out var draft) && draft.GetBoolean()) return null;
+                if (root.TryGetProperty("prerelease", out var pre) && pre.GetBoolean()) return null;
 
-                var data = root.GetProperty("data");
-                string latest = data.GetProperty("version").GetString() ?? "";
-                string url = data.GetProperty("latest_version_download_link").GetString() ?? "";
-                if (latest.Length == 0 || url.Length == 0) return null;
+                string tag = root.GetProperty("tag_name").GetString() ?? "";
+                string latest = tag.Trim().TrimStart('v', 'V');
+                if (latest.Length == 0) return null;
+
+                // انتخاب فایل نصب: اولویت با *-Setup.exe، بعد هر exe، بعد msix
+                string url = "";
+                long size = 0;
+                int best = int.MaxValue;
+                if (root.TryGetProperty("assets", out var assets))
+                {
+                    foreach (var a in assets.EnumerateArray())
+                    {
+                        string name = a.GetProperty("name").GetString() ?? "";
+                        int rank = name.EndsWith("-Setup.exe", StringComparison.OrdinalIgnoreCase) ? 0
+                            : name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? 1
+                            : name.EndsWith(".msix", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".msixbundle", StringComparison.OrdinalIgnoreCase) ? 2
+                            : int.MaxValue;
+                        if (rank < best)
+                        {
+                            best = rank;
+                            url = a.GetProperty("browser_download_url").GetString() ?? "";
+                            size = a.TryGetProperty("size", out var sz) ? sz.GetInt64() : 0;
+                        }
+                    }
+                }
+                if (url.Length == 0) return null;
 
                 return new UpdateInfo
                 {
                     LatestVersion = latest,
                     DownloadUrl = url,
+                    SizeBytes = size,
+                    ReleaseNotes = root.TryGetProperty("body", out var body) ? (body.GetString() ?? "").Trim() : "",
+                    PageUrl = root.TryGetProperty("html_url", out var html) ? html.GetString() ?? "" : "",
                     UpdateAvailable = IsNewer(latest, CurrentVersion),
                 };
             }
             catch
             {
-                return null; // آفلاین یا سرور در دسترس نیست — برنامه عادی ادامه می‌دهد
+                return null; // آفلاین یا گیت‌هاب در دسترس نیست — برنامه عادی ادامه می‌دهد
             }
         }
 
