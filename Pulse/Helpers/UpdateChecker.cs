@@ -55,12 +55,26 @@ namespace TaskManagerPro.Helpers
             }
         }
 
+        /// <summary>نصب از Microsoft Store؟ (هویت پکیج Store با هویت نسخه‌ی Setup فرق دارد)</summary>
+        public static bool IsStoreInstall
+        {
+            get
+            {
+                try { return Windows.ApplicationModel.Package.Current.Id.Name.StartsWith("PouriyaParniyan.", StringComparison.Ordinal); }
+                catch { return false; }
+            }
+        }
+
         /// <summary>
         /// چک آپدیت از Releaseهای گیت‌هاب — null یعنی دسترسی نبود یا پاسخ نامعتبر بود (بی‌خیال شو).
         /// تگ Release (مثل V2.3) نسخه است و فایل نصب از Assetهای همان Release برداشته می‌شود.
         /// </summary>
         public static async Task<UpdateInfo?> CheckAsync()
         {
+            // نسخه‌ی Microsoft Store فقط از خود Store آپدیت می‌شود (سیاست 10.8.2)
+            if (IsStoreInstall)
+                return new UpdateInfo { LatestVersion = CurrentVersion, UpdateAvailable = false };
+
             try
             {
                 string json = await Http.GetStringAsync(ApiUrl);
