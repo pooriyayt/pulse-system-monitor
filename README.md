@@ -4,7 +4,7 @@
 
 **A beautiful, modern task manager & system monitor for Windows 11, built with WinUI 3 and .NET 8.**
 
-[⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-2.3-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
+[⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
 *Open source — read the code, audit it, build it yourself.*<br><br>
  <img src="https://img.shields.io/github/downloads/pooriyayt/pulse-system-monitor/total.svg" alt="total" > <img src="https://img.shields.io/badge/antivirus-PASS-green" alt="antivirus" >
@@ -63,7 +63,7 @@ winget install wl-std.pulse
 
 ### Option 2 — Manual download
 
-1. Download: **[Pulse-2.3-Setup.exe](https://dl1.wl-std.com/Pulse-2.3-Setup.exe)**
+1. Download: **[Pulse-2.3.1-Setup.exe](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe)**
 2. Run it — it will ask for administrator access once (to trust the certificate and install)
 3. Done. Find **Pulse** in the Start menu, plus a shortcut on your desktop.
 
@@ -126,7 +126,7 @@ This will:
 
 **یک تسک‌منیجر و مانیتور سیستم مدرن و زیبا برای ویندوز ۱۱، ساخته‌شده با WinUI 3 و .NET 8**
 
-[⬇️ دانلود Pulse](https://dl1.wl-std.com/Pulse-2.3-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
+[⬇️ دانلود Pulse](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
 *متن‌باز — کد را بخوانید، بررسی کنید و خودتان بیلد بگیرید.*
 
@@ -191,7 +191,7 @@ winget install wl-std.pulse
 
 ### روش دوم — دانلود دستی
 
-۱. دانلود: **[Pulse-2.3-Setup.exe](https://dl1.wl-std.com/Pulse-2.3-Setup.exe)**
+۱. دانلود: **[Pulse-2.3.1-Setup.exe](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe)**
 ۲. اجرایش کنید — یک بار دسترسی ادمین می‌خواهد (برای Trust گواهی و نصب)
 ۳. تمام! **Pulse** در منوی استارت است و شورتکاتش روی دسکتاپ.
 
