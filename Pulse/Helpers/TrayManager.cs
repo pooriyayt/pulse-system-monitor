@@ -54,6 +54,7 @@ namespace TaskManagerPro.Helpers
         private readonly WndProcDelegate _wndProc;
 
         private IntPtr _hwnd;
+        private readonly DispatcherQueue? _dispatcherQueue;
         private DispatcherQueueTimer? _timer;
         private readonly HashSet<uint> _icons = new();
 
@@ -64,6 +65,7 @@ namespace TaskManagerPro.Helpers
 
         public TrayManager()
         {
+            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
             _wndProc = WndProcImpl;
 
             // یک پنجره‌ی مخفی فقط برای دریافت پیام‌های Tray و هات‌کی
@@ -86,10 +88,20 @@ namespace TaskManagerPro.Helpers
             if (!AppSettings.TrayEnabled || _hwnd == IntPtr.Zero) return;
             try
             {
-                DispatcherQueue.GetForCurrentThread().TryEnqueue(() =>
+                var dq = _dispatcherQueue ?? App.MainAppWindow?.DispatcherQueue ?? DispatcherQueue.GetForCurrentThread();
+                if (dq != null)
                 {
-                    if (AppSettings.TrayEnabled) RenderIcons(s);
-                });
+                    dq.TryEnqueue(() =>
+                    {
+                        if (AppSettings.TrayEnabled && _hwnd != IntPtr.Zero)
+                            RenderIcons(s);
+                    });
+                }
+                else
+                {
+                    if (AppSettings.TrayEnabled && _hwnd != IntPtr.Zero)
+                        RenderIcons(s);
+                }
             }
             catch { }
         }
