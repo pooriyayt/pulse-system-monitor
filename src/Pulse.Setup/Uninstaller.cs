@@ -89,13 +89,15 @@ namespace Pulse.Setup
         public static void Uninstall(Action<double, string> progress)
         {
             progress(0.08, Strings.UStepClose);
-            foreach (var p in Process.GetProcessesByName("TaskManagerPro"))
-                using (p) { try { p.Kill(); p.WaitForExit(3000); } catch { } }
+            foreach (var name in new[] { "Pulse", "TaskManagerPro" })
+                foreach (var p in Process.GetProcessesByName(name))
+                    using (p) { try { p.Kill(); p.WaitForExit(3000); } catch { } }
 
             progress(0.25, Strings.UStepPackage);
             string output;
             int code = Installer.RunPowerShell(
-                "$p = Get-AppxPackage " + Installer.PackageName + "; if ($p) { $p | Remove-AppxPackage -ErrorAction Stop }",
+                "$p = Get-AppxPackage Pulse; if ($p) { $p | Remove-AppxPackage -ErrorAction SilentlyContinue }; " +
+                "$p2 = Get-AppxPackage TaskManagerPro; if ($p2) { $p2 | Remove-AppxPackage -ErrorAction SilentlyContinue }",
                 out output);
             if (code != 0)
             {

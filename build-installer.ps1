@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 #  Pulse — Installer Builder
 #  Builds the latest version in Release, signs it,
 #  and produces a single setup exe (Pulse-<ver>-Setup.exe)
@@ -8,28 +8,29 @@
 # ============================================================
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
-$proj = Join-Path $root "TaskManagerPro\TaskManagerPro.csproj"
+$proj = Join-Path $root "Pulse\Pulse.csproj"
 $outDir = Join-Path $root "Installer"
 $stageParent = $env:TEMP
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
 # ---- version from manifest ----
-[xml]$manifest = Get-Content (Join-Path $root "TaskManagerPro\Package.appxmanifest")
-$version = $manifest.Package.Identity.Version   # e.g. 1.7.0.0
-$shortVer = ($version -split '\.')[0..1] -join '.'
-# installer version (independent of the app package version above)
-$installerVer = "2.3"
+[xml]$manifest = Get-Content (Join-Path $root "Pulse\Package.appxmanifest")
+$version = $manifest.Package.Identity.Version   # e.g. 2.3.1.0
+$parts = $version -split '\.'
+$shortVer = if ($parts[2] -ne '0') { "$($parts[0]).$($parts[1]).$($parts[2])" } else { "$($parts[0]).$($parts[1])" }
+# installer version
+$installerVer = "2.3.1"
 Write-Host "Building Pulse $shortVer, installer $installerVer ..." -ForegroundColor Cyan
 
 # ---- signing certificate (create if missing) ----
-$cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=TaskManagerPro" } | Select-Object -First 1
+$cert = Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=Pouriya Parniyan" } | Select-Object -First 1
 if (-not $cert) {
     Write-Host "Creating signing certificate..." -ForegroundColor Yellow
-    $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=TaskManagerPro" -KeyUsage DigitalSignature `
-        -FriendlyName "Task Manager Pro Signing" -CertStoreLocation "Cert:\CurrentUser\My" `
+    $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=Pouriya Parniyan" -KeyUsage DigitalSignature `
+        -FriendlyName "Pulse Signing" -CertStoreLocation "Cert:\CurrentUser\My" `
         -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
 }
-$cerPath = Join-Path $env:TEMP "TaskManagerPro.cer"
+$cerPath = Join-Path $env:TEMP "Pulse.cer"
 Export-Certificate -Cert $cert -FilePath $cerPath | Out-Null
 
 # ---- build signed MSIX package ----
@@ -97,7 +98,7 @@ Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $stage | Out-Null
 Copy-Item $msix.FullName (Join-Path $stage "app.msix")
 Copy-Item $cerPath (Join-Path $stage "app.cer")
-Copy-Item (Join-Path $root "TaskManagerPro\Assets\app.ico") (Join-Path $stage "app.ico")
+Copy-Item (Join-Path $root "Pulse\Assets\app.ico") (Join-Path $stage "app.ico")
 Copy-Item (Join-Path $depDir "dep.runtime.msix") (Join-Path $stage "dep.runtime.msix")
 Copy-Item (Join-Path $depDir "dep.vclibs.appx") (Join-Path $stage "dep.vclibs.appx")
 
@@ -122,6 +123,9 @@ dotnet build $setupProj -c Release -p:PayloadDir="$stage" -p:PulseVersion=$insta
     -o $buildOut -v:q -nologo --no-incremental
 if ($LASTEXITCODE -ne 0) { Write-Host "setup build failed" -ForegroundColor Red; exit 1 }
 Copy-Item (Join-Path $buildOut "Pulse-Setup.exe") $setupExe -Force
+try {
+    Set-AuthenticodeSignature -FilePath $setupExe -Certificate $cert | Out-Null
+} catch { }
 
 if (Test-Path $setupExe) {
     $mb = [Math]::Round((Get-Item $setupExe).Length / 1MB, 1)

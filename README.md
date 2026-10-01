@@ -102,10 +102,10 @@ cd pulse-system-monitor
 **2. Build & run (CLI)**
 
 ```bash
-dotnet build TaskManagerPro/TaskManagerPro.csproj -p:Platform=x64
+dotnet build Pulse/Pulse.csproj -p:Platform=x64
 ```
 
-Or open `TaskManagerPro/TaskManagerPro.sln` in Visual Studio, set platform to **x64**, press **F5**.
+Or open `Pulse/Pulse.sln` in Visual Studio, set platform to **x64**, press **F5**.
 
 **3. Build the single-file installer**
 
@@ -230,10 +230,10 @@ cd pulse-system-monitor
 **۲. بیلد و اجرا از خط فرمان**
 
 ```bash
-dotnet build TaskManagerPro/TaskManagerPro.csproj -p:Platform=x64
+dotnet build Pulse/Pulse.csproj -p:Platform=x64
 ```
 
-یا فایل `TaskManagerPro/TaskManagerPro.sln` را در ویژوال استودیو باز کنید، پلتفرم را روی **x64** بگذارید و **F5** بزنید.
+یا فایل `Pulse/Pulse.sln` را در ویژوال استودیو باز کنید، پلتفرم را روی **x64** بگذارید و **F5** بزنید.
 
 **۳. ساخت اینستالر تک‌فایلی**
 

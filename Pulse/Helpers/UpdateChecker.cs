@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
@@ -51,7 +51,7 @@ namespace TaskManagerPro.Helpers
                     var v = Windows.ApplicationModel.Package.Current.Id.Version;
                     return v.Build > 0 ? $"{v.Major}.{v.Minor}.{v.Build}" : $"{v.Major}.{v.Minor}";
                 }
-                catch { return "2.3"; }
+                catch { return "2.3.1"; }
             }
         }
 

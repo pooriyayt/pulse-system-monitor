@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 ﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using TaskManagerPro.Helpers;
@@ -13,6 +13,17 @@ namespace TaskManagerPro
     {
         /// <summary>دسترسی سراسری به پنجره‌ی اصلی (برای تعویض تم و ...)</summary>
         public static Window? MainAppWindow { get; private set; }
+
+        /// <summary>رویداد تغییر وضعیت دیده‌شدن پنجره اصلی (برای خاموش کردن رندر گراف‌ها و تایمرها در پس‌زمینه)</summary>
+        public static event Action<bool>? WindowVisibilityChanged;
+        public static bool IsWindowVisible { get; private set; } = true;
+
+        public static void SetWindowVisibility(bool visible)
+        {
+            if (IsWindowVisible == visible) return;
+            IsWindowVisible = visible;
+            try { WindowVisibilityChanged?.Invoke(visible); } catch { }
+        }
 
         /// <summary>مدیر آیکون System Tray و هات‌کی سراسری</summary>
         public static TrayManager? Tray { get; private set; }
@@ -65,7 +76,7 @@ namespace TaskManagerPro
             // بی‌سروصدا در Tray بماند و پنجره جلوی چشم کاربر باز نشود.
             if (Program.LaunchedAtStartup && AppSettings.TrayEnabled)
             {
-                try { MainAppWindow.AppWindow.Hide(); } catch { }
+                try { MainAppWindow.AppWindow.Hide(); SetWindowVisibility(false); } catch { }
             }
 
             // اعمال تم و تنظیمات ذخیره‌شده
@@ -109,6 +120,7 @@ namespace TaskManagerPro
                 {
                     e.Cancel = true;
                     s.Hide();
+                    SetWindowVisibility(false);
                 }
             };
 
@@ -117,11 +129,15 @@ namespace TaskManagerPro
             {
                 try
                 {
-                    if (AppSettings.TrayEnabled &&
-                        s.Presenter is OverlappedPresenter p &&
+                    if (s.Presenter is OverlappedPresenter p &&
                         p.State == OverlappedPresenterState.Minimized)
                     {
-                        s.Hide();
+                        if (AppSettings.TrayEnabled) s.Hide();
+                        SetWindowVisibility(false);
+                    }
+                    else if (e.DidVisibilityChange)
+                    {
+                        SetWindowVisibility(s.IsVisible);
                     }
                 }
                 catch { }

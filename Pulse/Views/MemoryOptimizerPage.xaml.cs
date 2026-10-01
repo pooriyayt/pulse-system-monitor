@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
@@ -41,11 +41,15 @@ namespace TaskManagerPro.Views
             ApplyL10n();
             AppSettings.LanguageChanged += ApplyL10n;
             AutoOptimizer.Ran += OnAutoRan;
+            App.WindowVisibilityChanged += OnWindowVisibilityChanged;
 
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
             _timer.Tick += async (_, _) => await SampleAsync();
-            _timer.Start();
-            _ = SampleAsync();
+            if (App.IsWindowVisible)
+            {
+                _timer.Start();
+                _ = SampleAsync();
+            }
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -54,6 +58,23 @@ namespace TaskManagerPro.Views
             _timer = null;
             AppSettings.LanguageChanged -= ApplyL10n;
             AutoOptimizer.Ran -= OnAutoRan;
+            App.WindowVisibilityChanged -= OnWindowVisibilityChanged;
+        }
+
+        private void OnWindowVisibilityChanged(bool visible)
+        {
+            if (!visible)
+            {
+                _timer?.Stop();
+            }
+            else
+            {
+                if (_timer != null && !_timer.IsEnabled)
+                {
+                    _timer.Start();
+                    _ = SampleAsync();
+                }
+            }
         }
 
         private void ApplyL10n()
@@ -142,7 +163,7 @@ namespace TaskManagerPro.Views
 
         private async Task SampleAsync()
         {
-            if (_sampling) return;
+            if (_sampling || !App.IsWindowVisible) return;
             _sampling = true;
             try
             {

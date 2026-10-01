@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -61,7 +61,6 @@ namespace TaskManagerPro.Helpers
         private readonly Dictionary<int, Queue<double>> _history = new();
         private const int HistoryLen = 16;
         private bool _hotkeyOn;
-        private bool _updating;
 
         public TrayManager()
         {
@@ -79,15 +78,20 @@ namespace TaskManagerPro.Helpers
             _hwnd = CreateWindowExW(0, wc.lpszClassName, "TrayMsgWindow", 0,
                 0, 0, 0, 0, new IntPtr(-3) /* HWND_MESSAGE */, IntPtr.Zero, wc.hInstance, IntPtr.Zero);
 
-            _timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
-            _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(AppSettings.RefreshIntervalMs, 1000));
-            _timer.Tick += (s, e) => UpdateIcons();
+            HistoryStore.Sampled += OnHistorySampled;
+        }
 
-            AppSettings.RefreshIntervalChanged += () =>
+        private void OnHistorySampled(SystemSnapshot s)
+        {
+            if (!AppSettings.TrayEnabled || _hwnd == IntPtr.Zero) return;
+            try
             {
-                if (_timer != null)
-                    _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(AppSettings.RefreshIntervalMs, 1000));
-            };
+                DispatcherQueue.GetForCurrentThread().TryEnqueue(() =>
+                {
+                    if (AppSettings.TrayEnabled) RenderIcons(s);
+                });
+            }
+            catch { }
         }
 
         /// <summary>بر اساس تنظیمات فعلی، آیکون‌ها و هات‌کی را فعال/غیرفعال می‌کند</summary>
@@ -106,35 +110,15 @@ namespace TaskManagerPro.Helpers
 
             if (AppSettings.TrayEnabled)
             {
-                _timer?.Start();
-                UpdateIcons();
+                if (HistoryStore.Latest is { } last) RenderIcons(last);
             }
             else
             {
-                _timer?.Stop();
                 RemoveAllIcons();
             }
         }
 
         // ---------- بروزرسانی آیکون‌ها ----------
-
-        private void UpdateIcons()
-        {
-            if (!AppSettings.TrayEnabled || _hwnd == IntPtr.Zero || _updating) return;
-            _updating = true;
-
-            var dq = DispatcherQueue.GetForCurrentThread();
-            System.Threading.Tasks.Task.Run(() =>
-            {
-                SystemSnapshot? snap = null;
-                try { snap = SystemMonitor.Instance.Read(); } catch { }
-                dq.TryEnqueue(() =>
-                {
-                    _updating = false;
-                    if (snap != null && AppSettings.TrayEnabled) RenderIcons(snap);
-                });
-            });
-        }
 
         private void RenderIcons(SystemSnapshot s)
         {
@@ -504,6 +488,7 @@ namespace TaskManagerPro.Helpers
             var w = App.MainAppWindow;
             if (w == null) return;
             w.AppWindow.Show();
+            App.SetWindowVisibility(true);
             if (w.AppWindow.Presenter is OverlappedPresenter p &&
                 p.State == OverlappedPresenterState.Minimized)
                 p.Restore();
@@ -515,7 +500,11 @@ namespace TaskManagerPro.Helpers
         {
             var w = App.MainAppWindow;
             if (w == null) return;
-            if (w.AppWindow.IsVisible) w.AppWindow.Hide();
+            if (w.AppWindow.IsVisible)
+            {
+                w.AppWindow.Hide();
+                App.SetWindowVisibility(false);
+            }
             else ShowWindowNow();
         }
 
@@ -553,6 +542,7 @@ namespace TaskManagerPro.Helpers
 
         public void Dispose()
         {
+            try { HistoryStore.Sampled -= OnHistorySampled; } catch { }
             try { RemoveAllIcons(); } catch { }
             try { if (_hotkeyOn) UnregisterHotKey(_hwnd, HOTKEY_ID); } catch { }
             try { if (_hwnd != IntPtr.Zero) DestroyWindow(_hwnd); } catch { }

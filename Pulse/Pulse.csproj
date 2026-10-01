@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -12,10 +12,10 @@
     <WindowsPackageType>MSIX</WindowsPackageType>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>TaskManagerPro</AssemblyName>
+    <AssemblyName>Pulse</AssemblyName>
     <!-- Main دستی در Program.cs — برای محافظت از اجرای چندباره (single instance) -->
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
-    <Version>2.3</Version>
+    <Version>2.3.1</Version>
     <!-- نام و آیکونی که Task Manager ویندوز برای پردازه نشان می‌دهد -->
     <AssemblyTitle>Pulse</AssemblyTitle>
     <Product>Pulse</Product>

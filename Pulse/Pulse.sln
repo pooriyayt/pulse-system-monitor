@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagerPro", "TaskManagerPro.csproj", "{3F2A9B7C-1D4E-4A6B-9C8D-5E7F0A1B2C3D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pulse", "Pulse.csproj", "{3F2A9B7C-1D4E-4A6B-9C8D-5E7F0A1B2C3D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

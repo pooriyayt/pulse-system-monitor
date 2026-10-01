@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -68,13 +68,15 @@ namespace TaskManagerPro.Controls
             {
                 ApplyAppearance();
                 AppSettings.AppearanceChanged += ApplyAppearance;
-                StartRendering();
+                App.WindowVisibilityChanged += OnWindowVisibilityChanged;
+                if (App.IsWindowVisible) StartRendering();
             };
 
             // وقتی صفحه عوض می‌شود، رندر متوقف شود تا هیچ منبعی هدر نرود.
             Unloaded += (_, _) =>
             {
                 AppSettings.AppearanceChanged -= ApplyAppearance;
+                App.WindowVisibilityChanged -= OnWindowVisibilityChanged;
                 StopRendering();
             };
         }
@@ -179,6 +181,21 @@ namespace TaskManagerPro.Controls
             _values.Add(value);
             // دو نقطه بیشتر نگه می‌داریم تا نقطه‌ی قدیمی هنگام خروج از لبه‌ی چپ ناگهان حذف نشود.
             while (_values.Count > MaxPoints + 2) _values.RemoveAt(0);
+
+            if (App.IsWindowVisible) StartRendering();
+        }
+
+        private void OnWindowVisibilityChanged(bool visible)
+        {
+            if (!visible)
+            {
+                StopRendering();
+            }
+            else if (_values.Count >= 2 || _staticSeries != null)
+            {
+                _staticDirty = true;
+                StartRendering();
+            }
         }
 
         /// <summary>
@@ -197,7 +214,7 @@ namespace TaskManagerPro.Controls
 
         private void StartRendering()
         {
-            if (_rendering) return;
+            if (_rendering || !App.IsWindowVisible) return;
             _rendering = true;
             CompositionTarget.Rendering += OnRendering;
         }
@@ -209,7 +226,30 @@ namespace TaskManagerPro.Controls
             CompositionTarget.Rendering -= OnRendering;
         }
 
-        private void OnRendering(object? sender, object e) => Redraw();
+        private void OnRendering(object? sender, object e)
+        {
+            if (!App.IsWindowVisible || RootGrid.ActualHeight <= 0 || RootGrid.ActualWidth <= 0)
+            {
+                StopRendering();
+                return;
+            }
+
+            Redraw();
+
+            // اگر انیمیشن اسلاید تمام شده و گراف استاتیک نیست، رندر مداوم را متوقف کن تا GPU آزاد بماند
+            if (_staticSeries == null && _values.Count >= 2 && _lastAdd != DateTime.MinValue)
+            {
+                double elapsed = (DateTime.UtcNow - _lastAdd).TotalMilliseconds;
+                if (elapsed >= _intervalMs)
+                {
+                    StopRendering();
+                }
+            }
+            else if (_staticSeries != null && !_staticDirty)
+            {
+                StopRendering();
+            }
+        }
 
         private void RootGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {

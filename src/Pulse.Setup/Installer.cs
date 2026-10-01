@@ -14,7 +14,7 @@ namespace Pulse.Setup
     /// </summary>
     static class Installer
     {
-        public const string PackageName = "TaskManagerPro";
+        public const string PackageName = "Pulse";
         public static readonly string LogFile = Path.Combine(Path.GetTempPath(), "Pulse-Setup.log");
 
         public static string Version
@@ -176,7 +176,8 @@ namespace Pulse.Setup
             var cmd =
                 "$ErrorActionPreference='Stop'; " +
                 "try { Add-AppxPackage -Path '" + msix + "' -DependencyPath " + deps + " -ForceApplicationShutdown } " +
-                "catch { Get-AppxPackage " + PackageName + " | Remove-AppxPackage -ErrorAction SilentlyContinue; " +
+                "catch { Get-AppxPackage TaskManagerPro | Remove-AppxPackage -ErrorAction SilentlyContinue; " +
+                "Get-AppxPackage " + PackageName + " | Remove-AppxPackage -ErrorAction SilentlyContinue; " +
                 "Add-AppxPackage -Path '" + msix + "' -DependencyPath " + deps + " }";
             int code = RunPowerShell(cmd, out output);
             if (code != 0)

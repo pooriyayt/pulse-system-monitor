@@ -355,8 +355,8 @@ namespace TaskManagerPro.Monitoring
         private SystemSnapshot ReadCore()
         {
             _reads++;
-            // هر 5 خواندن یک بار، لیست شمارنده‌های GPU را به‌روز کن (پردازش‌ها مدام باز/بسته می‌شوند)
-            if (_reads % 5 == 0) RefreshGpuInstances();
+            // فقط وقتی پنجره باز است و هر 15 بار یک بار، لیست شمارنده‌های GPU را به‌روز کن
+            if (App.IsWindowVisible && _reads % 15 == 0) RefreshGpuInstances();
 
             var s = new SystemSnapshot();
 

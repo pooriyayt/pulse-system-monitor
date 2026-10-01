@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -95,10 +95,31 @@ namespace TaskManagerPro.Views
             Loaded += async (s, e) =>
             {
                 ApplyPendingSearch();
+                App.WindowVisibilityChanged += OnWindowVisibilityChanged;
+                if (App.IsWindowVisible)
+                {
+                    StartTimer();
+                    await RefreshAsync();
+                }
+            };
+            Unloaded += (s, e) =>
+            {
+                App.WindowVisibilityChanged -= OnWindowVisibilityChanged;
+                _timer?.Stop();
+            };
+        }
+
+        private async void OnWindowVisibilityChanged(bool visible)
+        {
+            if (!visible)
+            {
+                _timer?.Stop();
+            }
+            else
+            {
                 StartTimer();
                 await RefreshAsync();
-            };
-            Unloaded += (s, e) => _timer?.Stop();
+            }
         }
 
         // ---------- نام نمایشی پردازه‌ها (مثل Task Manager ویندوز: توضیحات فایل) ----------
@@ -165,7 +186,7 @@ namespace TaskManagerPro.Views
 
         private async Task RefreshAsync()
         {
-            if (_refreshing) return;
+            if (_refreshing || !App.IsWindowVisible) return;
             _refreshing = true;
             try
             {

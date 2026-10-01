@@ -448,6 +448,8 @@ namespace TaskManagerPro
             foreach (var h in _sectionHeaders) h.Text = L10n.T((string)h.Tag);
 
             PaletteBox.PlaceholderText = L10n.T("Search") + "   Ctrl+K";
+            NavMoreText.Text = L10n.T("More");
+            ToolTipService.SetToolTip(NavMoreBtn, L10n.T("More"));
             AdminDot.Fill = (Brush)Application.Current.Resources[AdminHelper.IsAdmin ? "PulseOkBrush" : "PulseWarnBrush"];
             AdminTitle.Text = AdminHelper.IsAdmin ? L10n.T("Administrator") : L10n.T("Standard mode");
             L10n.ApplyDirection(this);
@@ -480,8 +482,11 @@ namespace TaskManagerPro
             v.StartAnimation("Opacity", a);
         }
 
-        private void NavMore_Click(object sender, RoutedEventArgs e) =>
-            NavScroller.ChangeView(null, NavScroller.ScrollableHeight, null, false);
+        private void NavMore_Click(object sender, RoutedEventArgs e)
+        {
+            double target = Math.Min(NavScroller.VerticalOffset + 120, NavScroller.ScrollableHeight);
+            NavScroller.ChangeView(null, target, null, false);
+        }
 
         // ---------------- خوش‌آمدگویی و تور ----------------
 

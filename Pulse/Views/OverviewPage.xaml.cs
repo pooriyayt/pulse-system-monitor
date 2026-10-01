@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
@@ -75,12 +75,13 @@ namespace TaskManagerPro.Views
                 Interval = TimeSpan.FromMilliseconds(AppSettings.RefreshIntervalMs)
             };
             _timer.Tick += Timer_Tick;
-            _timer.Start();
+            if (App.IsWindowVisible) _timer.Start();
 
             AppSettings.RefreshIntervalChanged += OnIntervalChanged;
+            App.WindowVisibilityChanged += OnWindowVisibilityChanged;
 
             // اولین آپدیت بدون انتظار
-            Timer_Tick(this, new object());
+            if (App.IsWindowVisible) Timer_Tick(this, new object());
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -89,6 +90,23 @@ namespace TaskManagerPro.Views
             _timer = null;
             AppSettings.RefreshIntervalChanged -= OnIntervalChanged;
             AppSettings.LanguageChanged -= ApplyL10n;
+            App.WindowVisibilityChanged -= OnWindowVisibilityChanged;
+        }
+
+        private void OnWindowVisibilityChanged(bool visible)
+        {
+            if (!visible)
+            {
+                _timer?.Stop();
+            }
+            else
+            {
+                if (_timer != null && !_timer.IsEnabled)
+                {
+                    _timer.Start();
+                    Timer_Tick(this, new object());
+                }
+            }
         }
 
         private void OnIntervalChanged()
@@ -99,7 +117,7 @@ namespace TaskManagerPro.Views
 
         private async void Timer_Tick(object? sender, object e)
         {
-            if (_busy) return;
+            if (_busy || !App.IsWindowVisible) return;
             _busy = true;
             try
             {

@@ -60,8 +60,8 @@
 
                 <!-- آیتم‌ها در کد ساخته می‌شوند -->
                 <Grid Grid.Row="1">
-                <ScrollViewer x:Name="NavScroller" VerticalScrollBarVisibility="Hidden" VerticalScrollMode="Auto"
-                              ViewChanged="NavScroller_ViewChanged" SizeChanged="NavScroller_SizeChanged">
+                <ScrollViewer x:Name="NavScroller" VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto"
+                               ViewChanged="NavScroller_ViewChanged" SizeChanged="NavScroller_SizeChanged">
                     <Grid x:Name="NavHost">
                         <!-- قطره‌ی شیشه‌ای انتخاب: بین آیتم‌ها با فنر می‌لغزد -->
                         <!-- کپسول شیشه‌ی مایع (Liquid Glass): شفاف، لبه‌ی براق، بین آیتم‌ها با فنر حرکت می‌کند -->
@@ -94,7 +94,7 @@
                                 </Ellipse.Fill>
                             </Ellipse>
                         </Grid>
-                        <StackPanel x:Name="NavPanel" Spacing="1" />
+                        <StackPanel x:Name="NavPanel" Spacing="1" Margin="0,0,0,32" />
                     </Grid>
                 </ScrollViewer>
 
@@ -107,20 +107,22 @@
                         </LinearGradientBrush>
                     </Rectangle.Fill>
                 </Rectangle>
-                <Rectangle x:Name="NavFadeBottom" Height="34" VerticalAlignment="Bottom" IsHitTestVisible="False" Opacity="0">
+                <Rectangle x:Name="NavFadeBottom" Height="54" VerticalAlignment="Bottom" IsHitTestVisible="False" Opacity="0">
                     <Rectangle.Fill>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Offset="0" Color="#00000000" />
-                            <GradientStop Offset="1" Color="#4D000000" />
+                            <GradientStop Offset="0" Color="#00181818" />
+                            <GradientStop Offset="0.35" Color="#B3181818" />
+                            <GradientStop Offset="1" Color="#F2181818" />
                         </LinearGradientBrush>
                     </Rectangle.Fill>
                 </Rectangle>
-                <Button x:Name="NavMoreBtn" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,2"
-                        Height="22" Padding="10,0" CornerRadius="11" Opacity="0" IsHitTestVisible="False"
-                        Background="{ThemeResource PulseCardHoverBrush}" BorderBrush="{ThemeResource PulseCardStrokeBrush}"
+                <Button x:Name="NavMoreBtn" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,4"
+                        Height="26" Padding="12,0" CornerRadius="13" Opacity="0" IsHitTestVisible="False"
+                        Background="{ThemeResource PulseSurfaceBrush}" BorderBrush="{ThemeResource PulseCardStrokeBrush}"
+                        BorderThickness="1"
                         Click="NavMore_Click" ToolTipService.ToolTip="More">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock x:Name="NavMoreText" Text="More" FontSize="11" />
+                        <TextBlock x:Name="NavMoreText" Text="More" FontSize="11" FontWeight="SemiBold" />
                         <FontIcon Glyph="&#xE70D;" FontSize="9" />
                     </StackPanel>
                 </Button>
