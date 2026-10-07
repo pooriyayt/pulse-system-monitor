@@ -4,10 +4,13 @@
 
 **A beautiful, modern task manager & system monitor for Windows 11, built with WinUI 3 and .NET 8.**
 
-[⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
+[⬇️ Download Pulse](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe) · [🛍️ Microsoft Store](https://apps.microsoft.com/store/detail/9NMD6SB8D6RT?cid=DevShareMCLPCS) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
 *Open source — read the code, audit it, build it yourself.*<br><br>
- <img src="https://img.shields.io/github/downloads/pooriyayt/pulse-system-monitor/total.svg" alt="total" > <img src="https://img.shields.io/badge/antivirus-PASS-green" alt="antivirus" >
+<a href="https://apps.microsoft.com/store/detail/9NMD6SB8D6RT?cid=DevShareMCLPCS">
+  <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download from Microsoft Store" width="160"/>
+</a><br><br>
+<img src="https://img.shields.io/github/downloads/pooriyayt/pulse-system-monitor/total.svg" alt="total" > <img src="https://img.shields.io/badge/antivirus-PASS-green" alt="antivirus" >
 </div>
 
 ---
@@ -55,13 +58,21 @@
 
 ## 📥 Installation
 
-## Option 1 — Winget (recommended)
+### Option 1 — Microsoft Store (recommended)
+
+<a href="https://apps.microsoft.com/store/detail/9NMD6SB8D6RT?cid=DevShareMCLPCS">
+  <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download from Microsoft Store" width="180"/>
+</a>
+
+Or install via direct link: **[Get Pulse on Microsoft Store](https://apps.microsoft.com/store/detail/9NMD6SB8D6RT?cid=DevShareMCLPCS)**
+
+### Option 2 — Winget
 
 ```powershell
 winget install wl-std.pulse
 ``` 
 
-### Option 2 — Manual download
+### Option 3 — Manual download
 
 1. Download: **[Pulse-2.3.1-Setup.exe](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe)**
 2. Run it — it will ask for administrator access once (to trust the certificate and install)
@@ -126,9 +137,12 @@ This will:
 
 **یک تسک‌منیجر و مانیتور سیستم مدرن و زیبا برای ویندوز ۱۱، ساخته‌شده با WinUI 3 و .NET 8**
 
-[⬇️ دانلود Pulse](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
+[⬇️ دانلود Pulse](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe) · [🛍️ مایکروسافت استور](https://apps.microsoft.com/store/detail/9NMD6SB8D6RT?cid=DevShareMCLPCS) · [🌐 pouriyaparniyan.ir](https://pouriyaparniyan.ir)
 
-*متن‌باز — کد را بخوانید، بررسی کنید و خودتان بیلد بگیرید.*
+*متن‌باز — کد را بخوانید، بررسی کنید و خودتان بیلد بگیرید.*<br><br>
+<a href="https://apps.microsoft.com/store/detail/9NMD6SB8D6RT?cid=DevShareMCLPCS">
+  <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="دریافت از مایکروسافت استور" width="160"/>
+</a>
 
 </div>
 
@@ -183,13 +197,21 @@ This will:
 
 ## 📥 نصب
 
-### روش اول — Winget (پیشنهادی)
+### روش اول — مایکروسافت استور (پیشنهادی)
+
+<a href="https://apps.microsoft.com/store/detail/9NMD6SB8D6RT?cid=DevShareMCLPCS">
+  <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="دریافت از مایکروسافت استور" width="180"/>
+</a>
+
+یا از طریق لینک مستقیم: **[دریافت پالس از مایکروسافت استور](https://apps.microsoft.com/store/detail/9NMD6SB8D6RT?cid=DevShareMCLPCS)**
+
+### روش دوم — Winget
 
 ```powershell
 winget install wl-std.pulse
 ```
 
-### روش دوم — دانلود دستی
+### روش سوم — دانلود دستی
 
 ۱. دانلود: **[Pulse-2.3.1-Setup.exe](https://dl1.wl-std.com/Pulse-2.3.1-Setup.exe)**
 ۲. اجرایش کنید — یک بار دسترسی ادمین می‌خواهد (برای Trust گواهی و نصب)
