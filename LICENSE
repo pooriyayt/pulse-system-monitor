@@ -38,9 +38,13 @@ ENGLISH
    written permission: https://pouriyaparniyan.ir
 
 5. CONTRIBUTIONS
-   By submitting a contribution (e.g. a pull request) you agree that your
-   contribution is licensed to the Author under this same license and may
-   be included in official releases.
+   By submitting a contribution (including any pull request, patch, or code
+   submission), you grant the Author (Pouriya Parniyan) a perpetual, worldwide,
+   non-exclusive, royalty-free, irrevocable, and transferable license to use,
+   reproduce, modify, adapt, publish, merge, distribute, sublicense, and/or
+   create derivative works from your submission, in source or binary form,
+   within this Software and official releases, without any requirement for
+   prior notice, attribution, or compensation.
 
 6. NO WARRANTY
    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
@@ -56,6 +60,10 @@ ENGLISH
 ============================================================
 فارسی
 ============================================================
+
+توجه: این متن صرفاً ترجمه و راهنمای تفسیری به زبان فارسی است. در صورت بروز هرگونه
+اختلاف، مغایرت یا تفسیر حقوقی، تنها نسخه‌ی انگلیسی بالا دارای اعتبار قانونی و مرجعیت
+حقوقی خواهد بود.
 
 لایسنس «سورس-در-دسترس پالس» نسخه ۱.۰
 حق نشر (c) ۲۰۲۶ پوریا پرنیان — pouriyaparniyan.ir
@@ -89,8 +97,12 @@ ENGLISH
    کتبی بگیرید: https://pouriyaparniyan.ir
 
 ۵. مشارکت‌ها
-   با ارسال مشارکت (مثلاً پول ریکوئست) می‌پذیرید که مشارکت شما تحت همین
-   لایسنس در اختیار مؤلف قرار می‌گیرد و ممکن است در نسخه‌های رسمی استفاده شود.
+   با ارسال هرگونه مشارکت (از جمله پول ریکوئست، پچ یا ارسال کد)، شما یک حق امتیاز
+   کامل، دائمی، جهانی، غیرانحصاری، بدون حق‌الامتیاز (royalty-free)، غیرقابل‌فسخ و
+   قابل‌انتقال جهت استفاده، تکثیر، تغییر، تطبیق، انتشار، ادغام، توزیع، اعطای مجوز
+   فرعی و ایجاد آثار مشتق‌شده از کدها و مشارکت‌های ارسالی را، به صورت سورس یا باینری،
+   در این نرم‌افزار و نسخه‌های رسمی به مؤلف (پوریا پرنیان) اعطا می‌نمایید؛ بدون نیاز به
+   اطلاع قبلی، ارجاع، یا پرداخت هرگونه خسارت و پاداش.
 
 ۶. عدم ضمانت
    نرم‌افزار «همان‌گونه که هست» ارائه می‌شود، بدون هیچ ضمانتی — صریح یا
