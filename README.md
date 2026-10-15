@@ -10,7 +10,7 @@
 <a href="https://apps.microsoft.com/store/detail/9NMD6SB8D6RT?cid=DevShareMCLPCS">
   <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download from Microsoft Store" width="160"/>
 </a><br><br>
-<img src="https://img.shields.io/github/downloads/pooriyayt/pulse-system-monitor/total.svg" alt="total" > <img src="https://img.shields.io/badge/antivirus-PASS-green" alt="antivirus" >
+<img src="https://img.shields.io/github/downloads/pooriyayt/pulse-system-monitor/total.svg" alt="total" > <img src="https://img.shields.io/badge/antivirus-PASS-green" alt="antivirus" > <a href="https://pouriyaparniyan.ir"><img src="https://img.shields.io/badge/Website-pouriyaparniyan.ir-10b981?style=flat&logo=googlechrome&logoColor=white" alt="Author Website"></a>
 </div>
 
 ---
